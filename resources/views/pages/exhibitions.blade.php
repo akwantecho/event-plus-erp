@@ -37,10 +37,10 @@
                         <tr>
                             <td><input type="checkbox" class="checkbox"></td>
                             <td>
-                                <div class="user-cell">
+                                <a href="{{ route('exhibitions.show', $loop->iteration) }}" class="user-cell">
                                     <span class="avatar sm">{{ mb_substr($ex['title'], 0, 1) }}</span>
                                     <span class="cell-strong">{{ $ex['title'] }}</span>
-                                </div>
+                                </a>
                             </td>
                             <td class="cell-muted"><i class="bi bi-geo-alt me-1"></i>{{ $ex['location'] }}</td>
                             <td class="cell-muted">{{ $ex['start'] }}</td>
@@ -48,7 +48,7 @@
                             <td>@include('partials.status', ['status' => $ex['status']])</td>
                             <td>
                                 <div class="row-actions">
-                                    <a href="#" title="{{ __('View') }}"><i class="bi bi-eye"></i></a>
+                                    <a href="{{ route('exhibitions.show', $loop->iteration) }}" title="{{ __('View') }}"><i class="bi bi-eye"></i></a>
                                     <a href="#" title="{{ __('Edit') }}"><i class="bi bi-pencil"></i></a>
                                     <button class="danger" title="{{ __('Delete') }}"><i class="bi bi-trash3"></i></button>
                                 </div>

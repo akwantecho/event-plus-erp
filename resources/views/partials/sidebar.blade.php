@@ -2,12 +2,19 @@
     $groups = [
         'Main' => [
             ['route' => 'dashboard',   'label' => 'Dashboard',   'icon' => 'bi-house'],
+            ['route' => 'tasks',       'label' => 'Tasks',       'icon' => 'bi-list-check'],
             ['route' => 'exhibitions', 'label' => 'Exhibitions', 'icon' => 'bi-easel2'],
-            ['route' => 'customers',   'label' => 'Customers',   'icon' => 'bi-people'],
-            ['route' => 'finance',     'label' => 'Finance',     'icon' => 'bi-wallet2'],
+            ['route' => 'contacts',    'label' => 'Contacts',    'icon' => 'bi-person-rolodex'],
+        ],
+        'Finance & Inventory' => [
+            ['route' => 'finance',   'label' => 'Finance',              'icon' => 'bi-wallet2'],
+            ['route' => 'contracts', 'label' => 'Contracts & Invoices', 'icon' => 'bi-file-earmark-text'],
+            ['route' => 'stock',     'label' => 'Stock',                'icon' => 'bi-box-seam'],
         ],
         'Utility' => [
+            ['route' => 'oman',     'label' => 'This is Oman', 'icon' => 'bi-camera-reels'],
             ['route' => 'archive',  'label' => 'Archive',  'icon' => 'bi-archive'],
+            ['route' => 'data',     'label' => 'Data',     'icon' => 'bi-database'],
             ['route' => 'settings', 'label' => 'Settings', 'icon' => 'bi-gear'],
         ],
     ];
@@ -28,7 +35,7 @@
             <div class="nav-group-label">{{ __($label) }}</div>
             @foreach ($items as $item)
                 <a href="{{ route($item['route']) }}"
-                   class="nav-link {{ request()->routeIs($item['route']) ? 'active' : '' }}">
+                   class="nav-link {{ request()->routeIs($item['route']) || request()->routeIs($item['route'].'.*') ? 'active' : '' }}">
                     <i class="bi {{ $item['icon'] }}"></i>
                     <span>{{ __($item['label']) }}</span>
                 </a>
