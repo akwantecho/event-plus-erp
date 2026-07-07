@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>متجر مَدّ · Madd Store</title>
+<link rel="stylesheet" href="colors_and_type.css" />
+<style>
+  /* FatimahArabic — brand display face */
+  @font-face { font-family:'FatimahArabic'; font-weight:300; font-style:normal; font-display:swap; src:url('fonts/FatimahArabicITF-Light.otf') format('opentype'); }
+  @font-face { font-family:'FatimahArabic'; font-weight:400; font-style:normal; font-display:swap; src:url('fonts/FatimahArabicITF-Light.otf') format('opentype'); }
+  @font-face { font-family:'FatimahArabic'; font-weight:500; font-style:normal; font-display:swap; src:url('fonts/FatimahArabicITF-Medium.otf') format('opentype'); }
+  @font-face { font-family:'FatimahArabic'; font-weight:600; font-style:normal; font-display:swap; src:url('fonts/FatimahArabicITF-Medium.otf') format('opentype'); }
+  @font-face { font-family:'FatimahArabic'; font-weight:700; font-style:normal; font-display:swap; src:url('fonts/FatimahArabicITF-Medium.otf') format('opentype'); }
+</style>
+<script src="assets/image-slot.js"></script>
+<style>
+  /* ============================ TOKENS ============================ */
+  :root {
+    --bg:#FFFFFF; --surface:#F4F4F5; --surface-2:#ECECF0;
+    --fg:#0A0A0A; --muted:#6E6E73; --hair:rgba(0,0,0,0.08);
+    --accent:#DD6E2B;
+    --font-disp:'FatimahArabic','IBM Plex Sans Arabic',sans-serif;
+    --font-body:'FatimahArabic','IBM Plex Sans Arabic','Inter',-apple-system,sans-serif;
+    --font-latin:'Inter',system-ui,sans-serif;
+    --wrap:1280px;
+    --ease:cubic-bezier(0.22,0.61,0.36,1);
+  }
+  body.dark {
+    --bg:#0A0A0A; --surface:#18181B; --surface-2:#232328;
+    --fg:#F4F4F5; --muted:rgba(244,244,245,0.55); --hair:rgba(255,255,255,0.08);
+  }
+
+  *,*::before,*::after { box-sizing:border-box; }
+  html,body { margin:0; padding:0; }
+  html { scroll-behavior:smooth; }
+  body {
+    font-family:var(--font-body);
+    background:var(--bg); color:var(--fg);
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    line-height:1.6; overflow-x:hidden;
+    font-feature-settings:"ss01","cv11";
+    transition:background .4s var(--ease), color .4s var(--ease);
+  }
+  a { color:inherit; text-decoration:none; }
+  img { display:block; max-width:100%; }
+  ::selection { background:var(--accent); color:#fff; }
+  .shell { max-width:var(--wrap); margin:0 auto; padding:0 40px; }
+  @media (max-width:720px){ .shell{ padding:0 20px; } }
+  .latin { font-family:var(--font-latin); }
+
+  /* ============================ HEADER (unified) ============================ */
+  .topbar {
+    position:sticky; top:0; z-index:60;
+    background:rgba(255,255,255,0.78);
+    backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px);
+    border-bottom:1px solid rgba(0,0,0,0.04);
+  }
+  .topbar-inner { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:24px; padding:16px 0; }
+  .topbar-inner > .brand { justify-self:start; }
+  .topbar-inner > .nav { justify-self:center; }
+  .topbar-inner > .controls { justify-self:end; }
+  @media (max-width:920px){ .topbar-inner{ grid-template-columns:1fr auto; } .nav{ display:none !important; } }
+  .brand { display:inline-flex; align-items:center; height:44px; }
+  .brand img { height:40px; width:auto; display:block; }
+  body.dark .brand img { filter:invert(1); }
+  .nav {
+    display:flex; align-items:center; gap:2px;
+    background:#F4F4F5; padding:5px; border-radius:999px;
+    font-family:'FatimahArabic','IBM Plex Sans Arabic','Inter',sans-serif;
+  }
+  .nav a {
+    font-size:14px; font-weight:500; letter-spacing:-0.005em; color:#0A0A0A;
+    padding:8px 16px; border-radius:999px; transition:background .2s ease, color .2s ease; white-space:nowrap;
+  }
+  .nav a:hover { background:#fff; }
+  .nav a.active { background:#fff; color:#0A0A0A; font-weight:600; }
+  .controls { display:inline-flex; align-items:center; gap:6px; }
+  .icon-btn {
+    position:relative;
+    width:40px; height:40px; border-radius:50%; border:none; background:#F4F4F5; color:#0A0A0A;
+    cursor:pointer; display:inline-flex; align-items:center; justify-content:center;
+    transition:background .2s ease, transform .15s ease;
+    font-family:'Inter',system-ui,sans-serif; font-size:13px; font-weight:600; padding:0;
+  }
+  .icon-btn:hover { background:#ECECF0; transform:translateY(-1px); }
+  .icon-btn svg { width:18px; height:18px; display:block; }
+  body:not(.dark) .icon-btn .sun { display:none; }
+  body.dark .icon-btn .moon { display:none; }
+  .cart-badge {
+    position:absolute; top:-4px; inset-inline-end:-4px;
+    min-width:18px; height:18px; padding:0 5px; border-radius:999px;
+    background:var(--accent); color:#fff; font-family:var(--font-latin);
+    font-size:11px; font-weight:700; line-height:18px; text-align:center;
+    transform:scale(0); transition:transform .2s var(--ease);
+  }
+  .cart-badge.show { transform:scale(1); }
+  /* dark-mode header */
+  body.dark .topbar { background:rgba(10,10,10,0.78); border-bottom-color:rgba(255,255,255,0.06); }
+  body.dark .nav { background:#18181B; }
+  body.dark .nav a { color:#F4F4F5; }
+  body.dark .nav a:hover { background:#232328; }
+  body.dark .nav a.active { background:#232328; color:#F4F4F5; }
+  body.dark .icon-btn { background:#18181B; color:#F4F4F5; }
+  body.dark .icon-btn:hover { background:#232328; }
+
+  /* ============================ HERO ============================ */
+  .hero { padding:clamp(56px,9vw,104px) 0 clamp(36px,5vw,56px); }
+  .hero-pill {
+    display:inline-flex; align-items:center; gap:9px;
+    background:var(--surface); color:var(--fg);
+    font-size:13px; font-weight:600; letter-spacing:-0.005em;
+    padding:8px 16px; border-radius:999px; margin-bottom:26px;
+  }
+  .hero-pill .dot { width:8px; height:8px; border-radius:50%; background:var(--accent); }
+  .hero h1 {
+    font-family:var(--font-disp); font-weight:700; margin:0;
+    font-size:clamp(48px,8.5vw,116px); line-height:0.98; letter-spacing:-0.04em;
+  }
+  html[lang="en"] .hero h1 { letter-spacing:-0.05em; font-size:clamp(44px,8vw,104px); }
+  .hero p.lead {
+    margin:24px 0 0; max-width:52ch;
+    font-size:clamp(17px,1.7vw,22px); color:var(--muted); line-height:1.6;
+  }
+
+  /* ============================ FILTER BAR ============================ */
+  .filter-bar {
+    position:sticky; top:73px; z-index:40;
+    background:color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--hair);
+    padding:16px 0;
+  }
+  .filter-row { display:flex; align-items:center; gap:18px; flex-wrap:wrap; justify-content:space-between; }
+  .filters { display:flex; gap:8px; flex-wrap:wrap; }
+  .filter {
+    border:1px solid var(--hair); background:transparent; color:var(--fg);
+    font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;
+    padding:9px 18px; border-radius:999px; transition:background .2s ease, color .2s ease, border-color .2s ease;
+    white-space:nowrap;
+  }
+  .filter:hover { background:var(--surface); }
+  .filter.active { background:var(--fg); color:var(--bg); border-color:var(--fg); }
+  .count { font-size:13px; color:var(--muted); font-family:var(--font-latin); }
+  [dir="rtl"] .count { font-family:var(--font-body); }
+
+  /* ============================ PRODUCT GRID ============================ */
+  .grid-sec { padding:clamp(36px,5vw,56px) 0 clamp(72px,10vw,120px); }
+
+  /* ============================ STORE INTRO ============================ */
+  .intro { padding:clamp(20px,3vw,32px) 0 clamp(24px,4vw,44px); }
+  .intro-lead {
+    font-family:var(--font-disp); font-weight:600;
+    font-size:clamp(22px,3vw,34px); line-height:1.4; letter-spacing:-0.02em;
+    margin:0 0 26px; max-width:24ch;
+  }
+  .intro-body { display:grid; grid-template-columns:1fr 1fr; gap:24px 48px; max-width:940px; }
+  .intro-body p { margin:0; font-size:clamp(15px,1.5vw,17.5px); line-height:1.85; color:var(--muted); }
+  .intro-accent {
+    grid-column:1 / -1; color:var(--accent) !important; font-weight:600;
+    font-family:var(--font-disp); font-size:clamp(17px,1.8vw,20px) !important; line-height:1.6 !important;
+  }
+  @media (max-width:720px){ .intro-body{ grid-template-columns:1fr; gap:18px; } }
+  /* ============================ LOOKBOOK ============================ */
+  .lookbook { display:flex; flex-direction:column; gap:clamp(64px,9vw,120px); }
+
+  .drop {
+    display:grid; grid-template-columns:1.15fr 1fr; gap:clamp(28px,5vw,72px);
+    align-items:center;
+  }
+  .drop:nth-child(even) .drop-visual { order:2; }
+  @media (max-width:820px){
+    .drop { grid-template-columns:1fr; gap:26px; }
+    .drop:nth-child(even) .drop-visual { order:0; }
+  }
+
+  .drop-visual { position:relative; }
+  .drop-hero {
+    position:relative; width:100%; aspect-ratio:4/5; border-radius:22px; overflow:hidden;
+    background:var(--surface);
+  }
+  .drop-hero image-slot { width:100%; height:100%; }
+  .drop-hero img { width:100%; height:100%; object-fit:cover; display:block; }
+  .drop-hero .hero-swap { position:absolute; inset:0; opacity:0; transition:opacity .45s var(--ease); }
+  .drop-hero .hero-swap.on { opacity:1; }
+  .hero-arrow {
+    position:absolute; top:50%; transform:translateY(-50%); z-index:5;
+    width:42px; height:42px; border-radius:50%; border:none; cursor:pointer;
+    background:rgba(255,255,255,0.92); color:#0A0A0A;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 18px rgba(0,0,0,0.14);
+    opacity:0; transition:opacity .25s ease, background .2s ease, transform .15s ease;
+  }
+  .drop-hero:hover .hero-arrow { opacity:1; }
+  .hero-arrow:hover { background:#fff; }
+  .hero-arrow:active { transform:translateY(-50%) scale(0.92); }
+  .hero-arrow svg { width:19px; height:19px; }
+  .hero-arrow.prev { inset-inline-start:14px; }
+  .hero-arrow.next { inset-inline-end:14px; }
+  @media (hover:none){ .hero-arrow { opacity:1; background:rgba(255,255,255,0.82); } }
+  .drop-tag {
+    position:absolute; top:16px; inset-inline-start:16px; z-index:4;
+    background:var(--fg); color:var(--bg);
+    font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+    padding:6px 13px; border-radius:999px;
+  }
+  .drop-tag.soon { background:var(--accent); color:#fff; }
+  .drop-fav {
+    position:absolute; top:14px; inset-inline-end:14px; z-index:4;
+    width:38px; height:38px; border-radius:50%; border:none; cursor:pointer;
+    background:rgba(255,255,255,0.92); color:#0A0A0A; display:flex; align-items:center; justify-content:center;
+    transition:background .2s ease, transform .15s ease;
+  }
+  .drop-fav:hover { background:#fff; transform:scale(1.06); }
+  .drop-fav.on { color:var(--accent); }
+  .drop-fav svg { width:18px; height:18px; }
+
+  .drop-thumbs { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+  .drop-thumb {
+    width:66px; height:82px; border-radius:12px; overflow:hidden; cursor:pointer; padding:0; border:2px solid transparent;
+    background:var(--surface); transition:border-color .2s ease, transform .15s ease;
+  }
+  .drop-thumb:hover { transform:translateY(-2px); }
+  .drop-thumb.active { border-color:var(--accent); }
+  .drop-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+
+  .drop-detail { max-width:34ch; }
+  .drop-index {
+    font-family:var(--font-latin); font-size:14px; font-weight:700; letter-spacing:0.1em;
+    color:var(--accent); margin-bottom:16px;
+  }
+  .drop-edition {
+    display:inline-flex; align-items:center; gap:7px; margin-bottom:18px;
+    font-size:12px; font-weight:600; letter-spacing:0.04em; color:var(--muted);
+  }
+  .drop-edition::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--accent); }
+  .drop-name {
+    font-family:var(--font-disp); font-weight:700; letter-spacing:-0.02em; line-height:1.15;
+    font-size:clamp(28px,3.6vw,44px); margin:0 0 18px;
+  }
+  .drop-story { font-size:clamp(15px,1.5vw,17px); line-height:1.8; color:var(--muted); margin:0 0 26px; }
+  .drop-foot { display:flex; align-items:center; gap:22px; flex-wrap:wrap; }
+  .drop-price { font-family:var(--font-latin); font-weight:700; font-size:22px; letter-spacing:-0.01em; }
+  .drop-price .cur { font-size:14px; font-weight:600; color:var(--muted); margin-inline-end:5px; }
+  .drop-price.soon { color:var(--muted); }
+
+  /* ============================ INFO BAND ============================ */
+  .band { background:var(--fg); color:var(--bg); }
+  body.dark .band { background:#18181B; color:#F4F4F5; }
+  .band .shell { padding-top:clamp(48px,7vw,80px); padding-bottom:clamp(48px,7vw,80px); }
+  .band-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:40px; }
+  @media (max-width:760px){ .band-grid{ grid-template-columns:1fr; gap:32px; } }
+  .band-item .ico {
+    width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    background:rgba(221,110,43,0.16); color:var(--accent); margin-bottom:18px;
+  }
+  .band-item .ico svg { width:22px; height:22px; }
+  .band-item h3 { font-family:var(--font-disp); font-weight:700; font-size:21px; margin:0 0 8px; letter-spacing:-0.015em; }
+  .band-item p { margin:0; font-size:15px; line-height:1.65; color:color-mix(in srgb, var(--bg) 64%, transparent); }
+  body.dark .band-item p { color:rgba(244,244,245,0.6); }
+
+  /* ============================ FOOTER ============================ */
+  footer.foot { padding:40px 0; color:var(--muted); }
+  footer.foot .shell { display:flex; justify-content:space-between; align-items:center; gap:20px; flex-wrap:wrap; font-size:14px; }
+  footer.foot a { color:var(--fg); font-weight:500; }
+  footer.foot .f-brand { font-family:var(--font-disp); font-weight:700; font-size:20px; color:var(--fg); }
+
+  /* ============================ CART DRAWER ============================ */
+  .scrim {
+    position:fixed; inset:0; z-index:90; background:rgba(0,0,0,0.45);
+    opacity:0; pointer-events:none; transition:opacity .3s var(--ease);
+  }
+  .scrim.show { opacity:1; pointer-events:auto; }
+  .drawer {
+    position:fixed; top:0; bottom:0; inset-inline-end:0; z-index:100;
+    width:min(440px,100%); background:var(--bg); color:var(--fg);
+    display:flex; flex-direction:column;
+    transform:translateX(100%); transition:transform .38s var(--ease);
+    box-shadow:-20px 0 60px rgba(0,0,0,0.18);
+  }
+  [dir="rtl"] .drawer { transform:translateX(-100%); }
+  .drawer.show { transform:translateX(0); }
+  .drawer-head {
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:22px 24px; border-bottom:1px solid var(--hair); flex-shrink:0;
+  }
+  .drawer-head h2 { font-family:var(--font-disp); font-weight:700; font-size:23px; margin:0; letter-spacing:-0.02em; }
+  .drawer-close {
+    width:38px; height:38px; border-radius:50%; border:none; cursor:pointer;
+    background:var(--surface); color:var(--fg); font-size:18px;
+    display:flex; align-items:center; justify-content:center; transition:background .2s ease;
+  }
+  .drawer-close:hover { background:var(--surface-2); }
+  .drawer-body { flex:1; overflow-y:auto; padding:8px 24px; }
+  .drawer-foot { flex-shrink:0; padding:20px 24px 24px; border-top:1px solid var(--hair); }
+
+  .cart-empty { text-align:center; color:var(--muted); padding:60px 20px; }
+  .cart-empty svg { width:46px; height:46px; margin:0 auto 16px; opacity:.4; display:block; }
+  .cart-empty p { margin:0; font-size:15px; }
+
+  .line { display:flex; gap:14px; padding:18px 0; border-bottom:1px solid var(--hair); }
+  .line:last-child { border-bottom:none; }
+  .line-thumb {
+    width:64px; height:64px; flex-shrink:0; border-radius:12px; overflow:hidden; background:var(--surface);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-disp); font-weight:700; font-size:22px; color:var(--accent);
+  }
+  .line-thumb img { width:100%; height:100%; object-fit:cover; }
+  .line-main { flex:1; min-width:0; display:flex; flex-direction:column; }
+  .line-name { font-family:var(--font-disp); font-weight:700; font-size:16px; letter-spacing:-0.01em; margin:0 0 4px; }
+  .line-price { font-family:var(--font-latin); font-size:13px; color:var(--muted); }
+  [dir="rtl"] .line-price { font-family:var(--font-body); }
+  .line-bottom { display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:10px; }
+  .qty { display:inline-flex; align-items:center; gap:0; border:1px solid var(--hair); border-radius:999px; overflow:hidden; }
+  .qty button {
+    width:30px; height:30px; border:none; background:transparent; color:var(--fg); cursor:pointer; font-size:16px;
+    display:flex; align-items:center; justify-content:center; transition:background .15s ease;
+  }
+  .qty button:hover { background:var(--surface); }
+  .qty span { min-width:26px; text-align:center; font-family:var(--font-latin); font-weight:600; font-size:14px; }
+  .line-rm { border:none; background:none; color:var(--muted); cursor:pointer; font-size:13px; font-weight:600; padding:4px; transition:color .2s ease; }
+  .line-rm:hover { color:#D0432B; }
+  .line-total { font-family:var(--font-latin); font-weight:700; font-size:15px; }
+
+  .summary-row { display:flex; align-items:center; justify-content:space-between; font-size:14px; margin-bottom:10px; color:var(--muted); }
+  .summary-row.total { color:var(--fg); font-size:18px; font-weight:700; margin:14px 0 18px; }
+  .summary-row.total .v { font-family:var(--font-latin); }
+  .cta-btn {
+    width:100%; border:none; cursor:pointer; border-radius:14px;
+    background:var(--fg); color:var(--bg); font-family:inherit; font-size:16px; font-weight:700;
+    padding:16px; display:flex; align-items:center; justify-content:center; gap:10px;
+    transition:transform .15s ease, opacity .2s ease;
+  }
+  .cta-btn:hover { transform:translateY(-1px); }
+  .cta-btn:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+  .cta-btn svg { width:17px; height:17px; }
+  .ghost-btn {
+    width:100%; border:1px solid var(--hair); background:transparent; color:var(--fg); cursor:pointer;
+    border-radius:14px; font-family:inherit; font-size:14px; font-weight:600; padding:13px; margin-top:10px;
+    transition:background .2s ease;
+  }
+  .ghost-btn:hover { background:var(--surface); }
+
+  /* checkout form */
+  .field { margin-bottom:14px; }
+  .field label { display:block; font-size:12.5px; font-weight:600; color:var(--muted); margin-bottom:6px; letter-spacing:0.01em; }
+  .field input {
+    width:100%; border:1px solid var(--hair); background:var(--surface); color:var(--fg);
+    border-radius:11px; padding:12px 14px; font-family:inherit; font-size:15px; outline:none;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .field input:focus { border-color:var(--accent); background:var(--bg); }
+  .field input::placeholder { color:var(--muted); opacity:.7; }
+  .field-row { display:flex; gap:12px; }
+  .field-row .field { flex:1; }
+  .form-section-title { font-size:12px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); margin:22px 0 12px; }
+  [dir="rtl"] .form-section-title { letter-spacing:0.04em; }
+  .pay-card {
+    background:var(--surface); border-radius:14px; padding:16px; margin-bottom:6px;
+    border:1px solid var(--hair);
+  }
+  .pay-brands { display:flex; gap:8px; align-items:center; }
+  .pay-brands .brand-chip { font-family:var(--font-latin); font-size:10px; font-weight:700; letter-spacing:0.04em; padding:4px 8px; border-radius:6px; background:var(--bg); color:var(--muted); border:1px solid var(--hair); }
+  .secure-note { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); margin-top:14px; justify-content:center; }
+  .secure-note svg { width:13px; height:13px; }
+
+  /* success */
+  .success { text-align:center; padding:40px 24px; display:flex; flex-direction:column; align-items:center; }
+  .success .check {
+    width:74px; height:74px; border-radius:50%; background:rgba(60,160,90,0.14); color:#3CA05A;
+    display:flex; align-items:center; justify-content:center; margin-bottom:22px;
+  }
+  .success .check svg { width:36px; height:36px; }
+  .success h2 { font-family:var(--font-disp); font-weight:700; font-size:28px; margin:0 0 10px; letter-spacing:-0.02em; }
+  .success p { margin:0 0 6px; color:var(--muted); font-size:15px; max-width:34ch; }
+  .success .order-id { font-family:var(--font-latin); font-weight:700; color:var(--fg); margin:14px 0 26px; font-size:15px; }
+
+  /* ============================ TOAST ============================ */
+  .toast {
+    position:fixed; inset-inline:0; bottom:28px; margin:0 auto; width:max-content; max-width:90vw;
+    background:var(--fg); color:var(--bg);
+    font-size:14px; font-weight:600; padding:13px 22px; border-radius:999px;
+    box-shadow:0 12px 40px rgba(0,0,0,0.25); z-index:120;
+    opacity:0; transform:translateY(14px); pointer-events:none;
+    transition:opacity .3s var(--ease), transform .3s var(--ease);
+  }
+  .toast.show { opacity:1; transform:translateY(0); }
+
+  .reveal { opacity:0; transform:translateY(22px); transition:opacity .6s var(--ease), transform .6s var(--ease); }
+  .reveal.in { opacity:1; transform:none; }
+  @media (prefers-reduced-motion:reduce){ .reveal{ opacity:1; transform:none; } }
+</style>
+</head>
+<body class="dark">
+
+<!-- ============================ HEADER ============================ -->
+<header class="topbar" data-screen-label="00 Header">
+  <div class="shell topbar-inner">
+    <a href="Portfolio.html" class="brand" aria-label="Madd">
+      <img src="assets/logo.svg" alt="Madd" />
+    </a>
+    <nav class="nav">
+      <a href="Portfolio.html#projects" data-i18n="nav.projects">Works</a>
+      <a href="Portfolio.html#identities" data-i18n="nav.identities">Identities</a>
+      <a href="Portfolio.html#coverage" data-i18n="nav.coverage">Coverage</a>
+      <a href="Portfolio.html#services" data-i18n="nav.services">Services</a>
+      <a href="Portfolio.html#about" data-i18n="nav.about">About</a>
+      <a href="store.html" class="active" data-i18n="nav.store">Madd Store</a>
+      <a href="oman.html" data-i18n="nav.oman">This is Oman</a>
+    </nav>
+    <div class="controls">
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Toggle theme">
+        <svg class="moon" viewBox="0 0 24 24" fill="none"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M19.4 4.6l-1.8 1.8M6.4 17.6l-1.8 1.8"/></g></svg>
+      </button>
+      <button class="icon-btn" id="langBtn" type="button" aria-label="Switch language"><span id="langLabel">EN</span></button>
+    </div>
+  </div>
+</header>
+
+<!-- ============================ HERO ============================ -->
+<section class="hero" data-screen-label="01 Hero">
+  <div class="shell">
+    <span class="hero-pill"><span class="dot"></span><span data-i18n="hero.pill">Official Madd merch</span></span>
+    <h1 data-i18n="hero.h1">Madd Store</h1>
+    <p class="lead" data-i18n="hero.lead">A space where we share pieces we designed with care — and believe are worth owning.</p>
+  </div>
+</section>
+
+<!-- ============================ STORE INTRO ============================ -->
+<section class="intro" data-screen-label="01b Intro">
+  <div class="shell">
+    <p class="intro-lead" data-i18n="intro.lead">A space where we share pieces we designed with care — and believe are worth owning.</p>
+    <div class="intro-body">
+      <p data-i18n="intro.p1">We release exclusive, limited, never-repeated drops — inspired by Arab and Omani identity with a contemporary spirit and a distinct artistic touch. Every piece carries an idea, a story, or a feeling tied to the place, the people, and the memories that express us.</p>
+      <p data-i18n="intro.p2">We collaborate with Omani and local artists and talents to turn ideas into products that are worn and used — believing local creativity deserves to be seen and owned.</p>
+      <p class="intro-accent" data-i18n="intro.accent">Every edition drops once. When it's gone, it's gone.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ PRODUCTS ============================ -->
+<section class="grid-sec" data-screen-label="03 Products">
+  <div class="shell">
+    <div class="lookbook" id="products"></div>
+  </div>
+</section>
+
+<!-- ============================ INFO BAND ============================ -->
+<section class="band" data-screen-label="04 Why">
+  <div class="shell">
+    <div class="band-grid">
+      <div class="band-item reveal">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l8-4 8 4v10l-8 4-8-4z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg></div>
+        <h3 data-i18n="why.1.t">Small batches</h3>
+        <p data-i18n="why.1.d">Printed in limited runs on heavyweight cotton — no overstock, no filler.</p>
+      </div>
+      <div class="band-item reveal">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/><circle cx="12" cy="12" r="9"/></svg></div>
+        <h3 data-i18n="why.2.t">Shipped across Oman</h3>
+        <p data-i18n="why.2.d">Free delivery in Muscat. Flat rate to every other governorate.</p>
+      </div>
+      <div class="band-item reveal">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <h3 data-i18n="why.3.t">Designed in-house</h3>
+        <p data-i18n="why.3.d">Every piece is drawn by the Madd studio — the same hands behind our client work.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FOOTER ============================ -->
+<footer class="foot">
+  <div class="shell">
+    <span class="f-brand" data-i18n="foot.brand">متجر مَدّ</span>
+    <span data-i18n="foot.copy">© 2026 Madd Agency · Bawshar — Al Maha St.</span>
+    <span><a href="mailto:Marhaba@madd.om">Marhaba@madd.om</a> &nbsp;·&nbsp; <a href="dashboard.html" data-i18n="foot.staff">Staff login</a></span>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var LANG_KEY='madd:lang', THEME_KEY='madd:theme';
+
+  /* ---------- product catalog ---------- */
+  var PRODUCTS = [
+    { id:'tee-green', cat:'apparel', price:12, nameEn:'We Love It Because It’s Oman — Green Mountain Edition', nameAr:'نحبها لأنها عمان — نسخة الجبل الأخضر', tag:'new', gallery:['assets/store/tee-green.jpg','assets/store/tee-green-2.jpg'] },
+    { id:'tee-02',    cat:'apparel', price:12, nameEn:'From Oman — Green Hoodie', nameAr:'من عمان — هودي أخضر', img:'assets/store/from-oman.jpg' },
+    { id:'tee-03',    cat:'apparel', price:12, nameEn:'Oman Team Jersey', nameAr:'قميص فريق عُمان', gallery:['assets/store/oman-team.jpg','assets/store/oman-team-white.jpg','assets/store/oman-team-duo.jpg'] },
+    { id:'tee-04',    cat:'apparel', price:12, nameEn:'Madd Tee — 04', nameAr:'تيشيرت مَدّ — ٠٤' }
+  ];
+  /* Merge employee-added products (from the dashboard / localStorage) */
+  try {
+    (JSON.parse(localStorage.getItem('madd:cms:products')||'[]')||[]).forEach(function(p){
+      PRODUCTS.push({ id:p.id, cat:p.cat, price:+p.price||0, nameEn:p.nameEn||p.nameAr, nameAr:p.nameAr||p.nameEn, tag:p.tag||'', img:p.img, gallery:p.gallery });
+    });
+  } catch(e){}
+
+  /* ---------- i18n ---------- */
+  var i18n = {
+    'nav.projects':'الأعمال','nav.identities':'الهويات','nav.coverage':'التغطيات','nav.services':'الخدمات','nav.about':'عنّا','nav.store':'متجر مَدّ','nav.oman':'هذي عُمان',
+    'hero.pill':'منتجات مَدّ الرسمية','hero.h1':'متجر مَدّ',
+    'hero.lead':'مساحةٌ نشاركُ فيها منتجاتٍ صمّمناها بإتقان، ونؤمن أنها تستحق الاقتناء.',
+    'intro.lead':'مساحةٌ نشاركُ فيها منتجاتٍ صمّمناها بإتقان، ونؤمن أنها تستحق الاقتناء.',
+    'intro.p1':'نُطلق إصداراتٍ حصرية بكمياتٍ محدودة، لا تتكرَّر، مستوحاةً من الهوية العربية والعُمانية بروحٍ معاصرة ولمسةٍ فنية مختلفة. كل قطعة تحمل فكرةً أو قصةً أو شعوراً مرتبطاً بالمكان والناس والذكريات التي تُعبِّر عنَّا.',
+    'intro.p2':'نتعاون مع فنانين ومواهب عُمانية ومحلية لتحويل الأفكار إلى منتجاتٍ تُلبَس وتُستخدَم، إيماناً بأن الإبداع المحلي يستحق أن يُرى ويُقتنى.',
+    'intro.accent':'كل إصدارٍ يُطلَق مرة واحدة فقط، وحين ينتهي، لا يعود.',
+    'filter.all':'الكل','filter.apparel':'ملابس','filter.accessories':'إكسسوارات','filter.stationery':'قرطاسية',
+    'why.1.t':'كميات محدودة','why.1.d':'تُطبع بكميات محدودة على قطن ثقيل — بلا فائض وبلا حشو.',
+    'why.2.t':'توصيل لكل عُمان','why.2.d':'توصيل مجاني داخل مسقط، وسعر موحّد لبقية المحافظات.',
+    'why.3.t':'تصميم داخلي','why.3.d':'كل قطعة يرسمها استوديو مَدّ — نفس الأيدي خلف أعمال عملائنا.',
+    'foot.brand':'متجر مَدّ','foot.copy':'© 2026 وكالة مَدّ · بوشر — شارع المها.','foot.staff':'دخول الموظفين',
+    'btn.add':'أضِف','btn.added':'تمت الإضافة','btn.soon':'قريبًا',
+    'count.one':'منتج واحد','count.tpl':'%n منتجًا',
+    'cart.title':'سلتك','cart.empty':'سلتك فارغة','cart.empty.sub':'أضِف بعض القطع لتبدأ.',
+    'cart.subtotal':'المجموع الفرعي','cart.shipping':'التوصيل','cart.shipping.free':'مجاني','cart.total':'الإجمالي',
+    'cart.checkout':'إتمام الشراء','cart.continue':'متابعة التسوّق','cart.remove':'إزالة',
+    'co.title':'الدفع','co.contact':'معلومات التواصل','co.name':'الاسم الكامل','co.phone':'رقم الهاتف',
+    'co.ship':'عنوان التوصيل','co.city':'المدينة','co.addr':'العنوان',
+    'co.pay':'بيانات الدفع','co.card':'رقم البطاقة','co.exp':'تاريخ الانتهاء','co.cvc':'CVC','co.cardname':'الاسم على البطاقة',
+    'co.paybtn':'ادفع','co.back':'رجوع للسلة','co.secure':'دفع آمن ومشفّر',
+    'ph.name':'محمد العامري','ph.phone':'9XXX XXXX','ph.city':'مسقط','ph.addr':'الحي، الشارع، رقم المبنى',
+    'ph.card':'0000 0000 0000 0000','ph.exp':'شهر/سنة','ph.cvc':'123','ph.cardname':'الاسم كما في البطاقة',
+    'ok.title':'تم استلام طلبك!','ok.sub':'أرسلنا تأكيدًا إلى بريدك. سنجهّز شحنتك قريبًا.','ok.order':'رقم الطلب','ok.done':'تم',
+    'edition.limited':'إصدار محدود','tag.new':'جديد','tag.soon':'قريبًا'
+  };
+  var en = {
+    'filter.all':'All','filter.apparel':'Apparel','filter.accessories':'Accessories','filter.stationery':'Stationery',
+    'intro.lead':'A space where we share pieces we designed with care — and believe are worth owning.',
+    'intro.p1':'We release exclusive, limited, never-repeated drops — inspired by Arab and Omani identity with a contemporary spirit and a distinct artistic touch. Every piece carries an idea, a story, or a feeling tied to the place, the people, and the memories that express us.',
+    'intro.p2':'We collaborate with Omani and local artists and talents to turn ideas into products that are worn and used — believing local creativity deserves to be seen and owned.',
+    'intro.accent':"Every edition drops once. When it's gone, it's gone.",
+    'btn.add':'Add','btn.added':'Added','btn.soon':'Soon',
+    'count.one':'1 product','count.tpl':'%n products',
+    'cart.title':'Your cart','cart.empty':'Your cart is empty','cart.empty.sub':'Add a few pieces to get started.',
+    'cart.subtotal':'Subtotal','cart.shipping':'Shipping','cart.shipping.free':'Free','cart.total':'Total',
+    'cart.checkout':'Checkout','cart.continue':'Continue shopping','cart.remove':'Remove',
+    'co.title':'Checkout','co.contact':'Contact','co.name':'Full name','co.phone':'Phone',
+    'co.ship':'Shipping address','co.city':'City','co.addr':'Address',
+    'co.pay':'Payment','co.card':'Card number','co.exp':'Expiry','co.cvc':'CVC','co.cardname':'Name on card',
+    'co.paybtn':'Pay','co.back':'Back to cart','co.secure':'Secure, encrypted payment',
+    'ph.name':'Mohammed Al Amri','ph.phone':'9XXX XXXX','ph.city':'Muscat','ph.addr':'District, street, building no.',
+    'ph.card':'0000 0000 0000 0000','ph.exp':'MM/YY','ph.cvc':'123','ph.cardname':'Name as on card',
+    'ok.title':'Order placed!','ok.sub':'We\u2019ve sent a confirmation to your email. Your order will ship soon.','ok.order':'Order','ok.done':'Done',
+    'edition.limited':'Limited edition','tag.new':'New','tag.soon':'Coming soon'
+  };
+
+  var lang='en', activeCat='all';
+  var favs = {};
+  try { favs = JSON.parse(localStorage.getItem('madd:store:favs')||'{}') || {}; } catch(e){ favs={}; }
+
+  function t(key){ return (lang==='ar' ? i18n[key] : en[key]) != null ? (lang==='ar' ? i18n[key] : en[key]) : (en[key]||''); }
+  function nameOf(p){ return lang==='ar' ? p.nameAr : p.nameEn; }
+  function priceStr(p){ return p.price % 1 === 0 ? String(p.price) : p.price.toFixed(1); }
+
+  /* ---------- render products (editorial lookbook) ---------- */
+  function render(){
+    var wrap = document.getElementById('products');
+    wrap.innerHTML = PRODUCTS.map(function(p, idx){
+      var soon = p.tag === 'soon';
+      var imgs = (p.gallery && p.gallery.length) ? p.gallery : (p.img ? [p.img] : []);
+      var tagHtml = p.tag === 'new' ? '<span class="drop-tag" data-i18n="tag.new">New</span>'
+                  : soon ? '<span class="drop-tag soon" data-i18n="tag.soon">Coming soon</span>' : '';
+      var favOn = favs[p.id] ? ' on' : '';
+      var num = ('0'+(idx+1)).slice(-2);
+
+      var heroInner;
+      if (imgs.length){
+        heroInner = imgs.map(function(src,i){
+          return '<div class="hero-swap'+(i===0?' on':'')+'" data-hero="'+p.id+'-'+i+'"><img src="'+src+'" alt="" /></div>';
+        }).join('');
+        if (imgs.length > 1){
+          heroInner +=
+            '<button class="hero-arrow prev" type="button" data-arrow="'+p.id+'" data-dir="-1" aria-label="Previous">'+
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>'+
+            '<button class="hero-arrow next" type="button" data-arrow="'+p.id+'" data-dir="1" aria-label="Next">'+
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>';
+        }
+      } else {
+        heroInner = '<image-slot id="store-'+p.id+'" shape="rounded" radius="22" placeholder="'+ (lang==='ar'?'أفلِت صورة المنتج':'Drop product photo') +'"></image-slot>';
+      }
+
+      var thumbs = imgs.length > 1
+        ? '<div class="drop-thumbs">'+ imgs.map(function(src,i){
+            return '<button class="drop-thumb'+(i===0?' active':'')+'" type="button" data-thumb="'+p.id+'" data-i="'+i+'"><img src="'+src+'" alt="" /></button>';
+          }).join('') +'</div>'
+        : '';
+
+      var priceHtml = soon
+        ? '<span class="drop-price soon">—</span>'
+        : '<span class="drop-price"><span class="cur">OMR</span>'+priceStr(p)+'</span>';
+
+      return '<article class="drop" data-cat="'+p.cat+'">'+
+        '<div class="drop-visual">'+
+          '<div class="drop-hero">'+
+            tagHtml+
+            '<button class="drop-fav'+favOn+'" type="button" data-fav="'+p.id+'" aria-label="Favorite">'+
+              '<svg viewBox="0 0 24 24" fill="'+(favs[p.id]?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 21s-7-4.5-9.5-9A5 5 0 0 1 12 6a5 5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg>'+
+            '</button>'+
+            heroInner+
+          '</div>'+
+          thumbs+
+        '</div>'+
+        '<div class="drop-detail">'+
+          '<div class="drop-index">'+num+' / '+('0'+PRODUCTS.length).slice(-2)+'</div>'+
+          '<div class="drop-edition" data-i18n="edition.limited">Limited edition</div>'+
+          '<h3 class="drop-name">'+nameOf(p)+'</h3>'+
+          '<div class="drop-foot">'+priceHtml+'</div>'+
+        '</div>'+
+      '</article>';
+    }).join('');
+
+    applyI18nWithin(wrap);
+    bindCards();
+    applyFilter();
+  }
+
+  function bindCards(){
+    document.querySelectorAll('[data-fav]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var id=b.dataset.fav; favs[id]=!favs[id]; b.classList.toggle('on', !!favs[id]);
+        var svg=b.querySelector('svg'); if(svg) svg.setAttribute('fill', favs[id]?'currentColor':'none');
+        try{ localStorage.setItem('madd:store:favs', JSON.stringify(favs)); }catch(e){}
+      });
+    });
+    // per-drop image controller: thumbnails, arrows, auto-rotate
+    if (window._dropTimers) window._dropTimers.forEach(function(t){ clearInterval(t); });
+    window._dropTimers = [];
+    document.querySelectorAll('#products .drop').forEach(function(card){
+      var swaps = Array.prototype.slice.call(card.querySelectorAll('.hero-swap'));
+      if (swaps.length < 2) return;
+      var id = swaps[0].getAttribute('data-hero').replace(/-\d+$/, '');
+      var thumbs = Array.prototype.slice.call(card.querySelectorAll('.drop-thumb'));
+      var cur = 0;
+      function show(i){
+        cur = (i + swaps.length) % swaps.length;
+        swaps.forEach(function(s,k){ s.classList.toggle('on', k===cur); });
+        thumbs.forEach(function(t,k){ t.classList.toggle('active', k===cur); });
+      }
+      thumbs.forEach(function(t,k){ t.addEventListener('click', function(){ show(k); restart(); }); });
+      card.querySelectorAll('[data-arrow="'+id+'"]').forEach(function(b){
+        b.addEventListener('click', function(){ show(cur + (+b.dataset.dir)); restart(); });
+      });
+      var timer = null;
+      function play(){ if(!timer) timer = setInterval(function(){ show(cur+1); }, 4000); window._dropTimers.push(timer); }
+      function stop(){ if(timer){ clearInterval(timer); timer=null; } }
+      function restart(){ stop(); play(); }
+      card.querySelector('.drop-hero').addEventListener('mouseenter', stop);
+      card.querySelector('.drop-hero').addEventListener('mouseleave', play);
+      play();
+    });
+  }
+
+  function applyFilter(){
+    var n=0;
+    document.querySelectorAll('#products .drop').forEach(function(card){
+      var show = activeCat==='all' || card.dataset.cat===activeCat;
+      card.hidden = !show; if(show) n++;
+    });
+    var c=document.getElementById('count');
+    if(c) c.textContent = n===1 ? t('count.one') : t('count.tpl').replace('%n', lang==='ar'? toArabic(n) : n);
+  }
+  function toArabic(num){ return String(num).replace(/[0-9]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[+d];}); }
+
+  var toastTimer;
+  function showToast(msg){
+    var el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
+    clearTimeout(toastTimer); toastTimer=setTimeout(function(){ el.classList.remove('show'); }, 1900);
+  }
+
+  /* ---------- filters ---------- */
+  var filtersEl = document.getElementById('filters');
+  if(filtersEl) filtersEl.addEventListener('click', function(e){
+    var b=e.target.closest('.filter'); if(!b) return;
+    activeCat=b.dataset.cat;
+    document.querySelectorAll('.filter').forEach(function(x){ x.classList.toggle('active', x===b); });
+    applyFilter();
+  });
+
+  /* ---------- i18n / theme ---------- */
+  function applyI18nWithin(root){
+    root.querySelectorAll('[data-i18n]').forEach(function(el){
+      var key=el.dataset.i18n;
+      if(!el.dataset.i18nEn) el.dataset.i18nEn=el.innerHTML.trim();
+      if(lang==='en'){ el.innerHTML=el.dataset.i18nEn; }
+      else if(i18n[key]!=null){ el.innerHTML=i18n[key]; }
+    });
+  }
+  function applyLang(l){
+    lang=l;
+    document.documentElement.lang=l;
+    document.documentElement.dir=l==='ar'?'rtl':'ltr';
+    applyI18nWithin(document);
+    var ll=document.getElementById('langLabel'); if(ll) ll.textContent=l==='ar'?'EN':'AR';
+    try{ localStorage.setItem(LANG_KEY,l); }catch(e){}
+    render();
+  }
+  function applyTheme(th){ document.body.classList.toggle('dark', th==='dark'); try{ localStorage.setItem(THEME_KEY,th); }catch(e){} }
+
+  var savedTheme='dark', savedLang='en';
+  try{ savedTheme=localStorage.getItem(THEME_KEY)||'dark'; savedLang=localStorage.getItem(LANG_KEY)||'en'; }catch(e){}
+  applyTheme(savedTheme);
+  applyLang(savedLang);
+
+  document.getElementById('themeBtn').addEventListener('click', function(){ applyTheme(document.body.classList.contains('dark')?'light':'dark'); });
+  document.getElementById('langBtn').addEventListener('click', function(){ applyLang(document.documentElement.lang==='ar'?'en':'ar'); });
+
+  /* ---------- reveal ---------- */
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){ es.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target);} }); },{rootMargin:'0px 0px -8% 0px'});
+    document.querySelectorAll('.reveal').forEach(function(e){ io.observe(e); });
+  } else {
+    document.querySelectorAll('.reveal').forEach(function(e){ e.classList.add('in'); });
+  }
+})();
+</script>
+
+<script>
+  /* Warm the portfolio + oman pages on hover/touch for fast nav */
+  (function(){
+    var warmed={};
+    function warm(u){ if(warmed[u])return; warmed[u]=1; try{ fetch(u,{priority:'low',credentials:'same-origin'}).catch(function(){}); }catch(e){} }
+    document.querySelectorAll("a[href^='Portfolio.html']").forEach(function(a){
+      a.addEventListener('pointerenter', function(){ warm('Portfolio.html'); }, {passive:true});
+    });
+    document.querySelectorAll("a[href='oman.html']").forEach(function(a){
+      a.addEventListener('pointerenter', function(){ warm('oman.html'); warm('oman-data.js'); }, {passive:true});
+    });
+  })();
+</script>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#0A0A0A"/><path d="M30 38h40l-5 28a3 3 0 0 1-3 3H38a3 3 0 0 1-3-3z" fill="none" stroke="#DD6E2B" stroke-width="3.4" stroke-linejoin="round"/><path d="M40 40a10 10 0 0 1 20 0" fill="none" stroke="#DD6E2B" stroke-width="3.4" stroke-linecap="round"/></svg>
+</template>
+
+</body>
+</html>

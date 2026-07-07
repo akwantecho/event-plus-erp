@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>معاينة الجوال · Phone Preview</title>
+<style>
+  *,*::before,*::after { box-sizing:border-box; }
+  html,body { margin:0; padding:0; height:100%; }
+  :root{
+    --bg:#0E0E10; --panel:#17171A; --line:rgba(255,255,255,.10);
+    --fg:#F4F4F5; --muted:rgba(244,244,245,.55); --accent:#DD6E2B;
+    --font:'IBM Plex Sans Arabic','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  }
+  body{
+    font-family:var(--font);
+    background:
+      radial-gradient(120% 90% at 50% -10%, #1b1b20 0%, transparent 55%),
+      var(--bg);
+    color:var(--fg);
+    min-height:100%;
+    display:flex; flex-direction:column;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- toolbar ---------- */
+  .bar{
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+    padding:16px 24px; border-bottom:1px solid var(--line);
+    background:rgba(14,14,16,.7); backdrop-filter:blur(12px);
+    position:sticky; top:0; z-index:5;
+  }
+  .bar .title{ font-weight:700; font-size:16px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
+  .bar .title .dot{ width:9px; height:9px; border-radius:50%; background:var(--accent); }
+  .group{ display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--line); padding:5px; border-radius:999px; }
+  .group .lbl{ font-size:11px; color:var(--muted); padding:0 8px; letter-spacing:.04em; }
+  .seg{
+    border:none; background:transparent; color:var(--fg); cursor:pointer;
+    font-family:inherit; font-size:13px; font-weight:600; padding:8px 14px; border-radius:999px;
+    transition:background .18s ease, color .18s ease; white-space:nowrap;
+  }
+  .seg:hover{ background:rgba(255,255,255,.06); }
+  .seg.active{ background:var(--fg); color:#0E0E10; }
+  .seg .sz{ font-size:11px; opacity:.55; font-weight:500; margin-inline-start:6px; }
+  .spacer{ flex:1; }
+  .hint{ font-size:12px; color:var(--muted); }
+
+  /* ---------- stage ---------- */
+  .stage{
+    flex:1; display:flex; align-items:center; justify-content:center;
+    padding:40px 24px 56px; overflow:auto;
+  }
+  .device-wrap{ display:flex; flex-direction:column; align-items:center; gap:18px; }
+
+  /* phone bezel */
+  .phone{
+    position:relative;
+    border-radius:54px;
+    background:linear-gradient(160deg,#2a2a2e,#densely 0,#121214);
+    background:linear-gradient(160deg,#2c2c30 0%,#121214 100%);
+    padding:14px;
+    box-shadow:
+      0 2px 0 rgba(255,255,255,.06) inset,
+      0 0 0 2px #000,
+      0 40px 90px rgba(0,0,0,.6),
+      0 12px 30px rgba(0,0,0,.5);
+    transition:width .25s ease, height .25s ease;
+  }
+  .phone::before{ /* side buttons */
+    content:""; position:absolute; left:-3px; top:130px; width:3px; height:64px;
+    background:#0a0a0b; border-radius:3px 0 0 3px;
+  }
+  .phone::after{
+    content:""; position:absolute; right:-3px; top:108px; width:3px; height:34px;
+    background:#0a0a0b; border-radius:0 3px 3px 0;
+  }
+  .screen{
+    position:relative; width:100%; height:100%;
+    border-radius:42px; overflow:hidden; background:#000;
+  }
+  .notch{
+    position:absolute; top:10px; left:50%; transform:translateX(-50%);
+    width:120px; height:30px; background:#000; border-radius:999px; z-index:3; pointer-events:none;
+  }
+  .screen iframe{
+    border:0; width:100%; height:100%; display:block; background:#0A0A0A;
+  }
+  .meta{
+    font-size:12px; color:var(--muted); letter-spacing:.04em;
+    display:flex; align-items:center; gap:8px;
+  }
+  .meta b{ color:var(--fg); font-weight:600; }
+  .open-btn{
+    display:inline-flex; align-items:center; gap:7px;
+    border:1px solid var(--line); background:var(--panel); color:var(--fg);
+    font-family:inherit; font-size:12px; font-weight:600; cursor:pointer;
+    padding:7px 13px; border-radius:999px; text-decoration:none;
+    transition:background .18s ease;
+  }
+  .open-btn:hover{ background:rgba(255,255,255,.07); }
+  .open-btn svg{ width:14px; height:14px; }
+
+  @media (max-width:640px){
+    .bar{ gap:12px; padding:12px 14px; }
+    .hint{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <span class="title"><span class="dot"></span> معاينة الجوال</span>
+
+  <div class="group" id="pageGroup">
+    <span class="lbl">الصفحة</span>
+    <button class="seg active" data-src="Portfolio.html">البورتفوليو</button>
+    <button class="seg" data-src="oman.html">هذي عُمان</button>
+    <button class="seg" data-src="case.html?id=PROJ-01">صفحة مشروع</button>
+  </div>
+
+  <div class="group" id="sizeGroup">
+    <span class="lbl">الجهاز</span>
+    <button class="seg active" data-w="390" data-h="844" data-name="iPhone 14">آيفون<span class="sz">390×844</span></button>
+    <button class="seg" data-w="360" data-h="800" data-name="Android">أندرويد<span class="sz">360×800</span></button>
+    <button class="seg" data-w="320" data-h="690" data-name="iPhone SE">صغير<span class="sz">320×690</span></button>
+  </div>
+
+  <div class="spacer"></div>
+  <span class="hint">تقدر تبدّل الصفحة والمقاس من فوق</span>
+</div>
+
+<div class="stage">
+  <div class="device-wrap">
+    <div class="meta">
+      <b id="devName">iPhone 14</b>
+      <span id="devSize">390 × 844</span>
+      <a class="open-btn" id="openReal" href="Portfolio.html" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+        فتح بحجم كامل
+      </a>
+    </div>
+
+    <div class="phone" id="phone">
+      <div class="screen">
+        <div class="notch"></div>
+        <iframe id="frame" src="Portfolio.html" title="معاينة"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var frame   = document.getElementById('frame');
+  var phone   = document.getElementById('phone');
+  var devName = document.getElementById('devName');
+  var devSize = document.getElementById('devSize');
+  var openReal= document.getElementById('openReal');
+  var pad = 14; // bezel padding
+
+  var state = { src:'Portfolio.html', w:390, h:844, name:'iPhone 14' };
+
+  function applySize(){
+    phone.style.width  = (state.w + pad*2) + 'px';
+    phone.style.height = (state.h + pad*2) + 'px';
+    devName.textContent = state.name;
+    devSize.textContent = state.w + ' × ' + state.h;
+  }
+  function applySrc(){
+    if (frame.getAttribute('src') !== state.src) frame.setAttribute('src', state.src);
+    openReal.setAttribute('href', state.src);
+  }
+
+  // page switcher
+  document.querySelectorAll('#pageGroup .seg').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('#pageGroup .seg').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      state.src = b.dataset.src;
+      applySrc();
+      try{ localStorage.setItem('phonePreview:src', state.src); }catch(e){}
+    });
+  });
+
+  // size switcher
+  document.querySelectorAll('#sizeGroup .seg').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('#sizeGroup .seg').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      state.w = +b.dataset.w; state.h = +b.dataset.h; state.name = b.dataset.name;
+      applySize();
+      try{ localStorage.setItem('phonePreview:size', state.w+'x'+state.h); }catch(e){}
+    });
+  });
+
+  // restore last choice
+  try{
+    var s = localStorage.getItem('phonePreview:src');
+    if (s){
+      var pb = document.querySelector('#pageGroup .seg[data-src="'+s+'"]');
+      if (pb){ document.querySelectorAll('#pageGroup .seg').forEach(function(x){x.classList.remove('active');}); pb.classList.add('active'); state.src = s; }
+    }
+    var sz = localStorage.getItem('phonePreview:size');
+    if (sz){
+      var zb = document.querySelector('#sizeGroup .seg[data-w="'+sz.split('x')[0]+'"]');
+      if (zb){ document.querySelectorAll('#sizeGroup .seg').forEach(function(x){x.classList.remove('active');}); zb.classList.add('active'); state.w=+zb.dataset.w; state.h=+zb.dataset.h; state.name=zb.dataset.name; }
+    }
+  }catch(e){}
+
+  applySize();
+  applySrc();
+})();
+</script>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#0E0E10"/><rect x="38" y="22" width="24" height="56" rx="7" fill="none" stroke="#DD6E2B" stroke-width="3"/><rect x="45" y="26" width="10" height="2.4" rx="1.2" fill="#DD6E2B"/></svg>
+</template>
+
+</body>
+</html>

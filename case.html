@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Madd — Case study</title>
+<link rel="stylesheet" href="colors_and_type.css" />
+<link rel="preload" as="font" type="font/otf" href="fonts/FatimahArabicITF-Light.otf" crossorigin="anonymous" />
+<link rel="preload" as="font" type="font/otf" href="fonts/FatimahArabicITF-Medium.otf" crossorigin="anonymous" />
+<style>
+  @font-face {
+    font-family: 'FatimahArabic';
+    font-weight: 300;
+    font-style: normal;
+    font-display: block;
+    src: url('fonts/FatimahArabicITF-Light.otf') format('opentype');
+  }
+  @font-face {
+    font-family: 'FatimahArabic';
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+    src: url('fonts/FatimahArabicITF-Light.otf') format('opentype');
+  }
+  @font-face {
+    font-family: 'FatimahArabic';
+    font-weight: 500;
+    font-style: normal;
+    font-display: block;
+    src: url('fonts/FatimahArabicITF-Medium.otf') format('opentype');
+  }
+  @font-face {
+    font-family: 'FatimahArabic';
+    font-weight: 600;
+    font-style: normal;
+    font-display: block;
+    src: url('fonts/FatimahArabicITF-Medium.otf') format('opentype');
+  }
+  @font-face {
+    font-family: 'FatimahArabic';
+    font-weight: 700;
+    font-style: normal;
+    font-display: block;
+    src: url('fonts/FatimahArabicITF-Medium.otf') format('opentype');
+  }
+</style>
+<script src="assets/image-slot.js"></script>
+<style>
+  *,*::before,*::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'FatimahArabic', 'IBM Plex Sans Arabic', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #FFFFFF;
+    color: #0A0A0A;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  a { color: inherit; text-decoration: none; }
+  img { display: block; max-width: 100%; }
+
+  .display {
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 1.0;
+    color: #0A0A0A;
+    text-wrap: balance;
+  }
+  .shell {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  @media (max-width: 720px) { .shell { padding: 0 20px; } }
+
+  /* HEADER (same vocabulary as Portfolio.html) */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .topbar-inner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 24px;
+    padding: 16px 0;
+  }
+  .topbar-inner > .brand { justify-self: start; }
+  .topbar-inner > .nav { justify-self: center; }
+  .topbar-inner > .header-controls { justify-self: end; }
+  @media (max-width: 880px) {
+    .topbar-inner { grid-template-columns: 1fr auto; }
+    .topbar-inner > .nav { display: none; }
+  }
+  .brand { display: inline-flex; align-items: center; height: 44px; }
+  .brand img { height: 40px; width: auto; display: block; }
+  .nav {
+    display: flex; align-items: center; gap: 2px;
+    background: #F4F4F5; padding: 5px; border-radius: 999px;
+  }
+  .nav a {
+    font-size: 14px; font-weight: 500; color: #0A0A0A;
+    padding: 8px 16px; border-radius: 999px;
+    transition: background 0.2s ease;
+  }
+  .nav a:hover { background: #fff; }
+  .header-controls { display: inline-flex; align-items: center; gap: 6px; }
+  .icon-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: none; background: #F4F4F5; color: #0A0A0A;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    transition: background 0.2s ease, transform 0.15s ease;
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    letter-spacing: 0.02em; padding: 0;
+  }
+  .icon-btn:hover { background: #ECECF0; transform: translateY(-1px); }
+  .icon-btn svg { width: 18px; height: 18px; }
+  body:not(.dark) .icon-btn .sun { display: none; }
+  body.dark .icon-btn .moon { display: none; }
+
+  /* CASE HERO */
+  .case-hero {
+    padding: 88px 0 56px;
+  }
+  .breadcrumb {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 14px; color: #6E6E73;
+    margin-bottom: 32px;
+  }
+  .breadcrumb a {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: #6E6E73; transition: color 0.2s ease;
+  }
+  .breadcrumb a:hover { color: #0A0A0A; }
+  .breadcrumb svg { width: 14px; height: 14px; }
+  .breadcrumb .sep { color: #C8C8CC; }
+  .case-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #F4F4F5; color: #0A0A0A;
+    border-radius: 999px; padding: 8px 14px;
+    font-size: 13px; font-weight: 500;
+    margin-bottom: 28px;
+  }
+  .case-title {
+    font-size: clamp(48px, 7.6vw, 110px);
+    max-width: 18ch;
+    margin: 0 0 28px;
+  }
+  .case-lead {
+    max-width: 56ch;
+    font-size: clamp(18px, 1.6vw, 22px);
+    line-height: 1.45;
+    color: #2A2A2A;
+    margin: 0;
+  }
+
+  /* HERO IMAGE */
+  .case-cover {
+    margin-top: 56px;
+    border-radius: 28px;
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+  }
+  .case-cover > image-slot {
+    width: 100%; height: 100%; display: block;
+  }
+
+  /* META FACTS */
+  .case-meta {
+    margin-top: 32px;
+    background: #F4F4F5;
+    border-radius: 24px;
+    padding: 32px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 28px;
+  }
+  .case-meta .cell {
+    padding-left: 28px;
+    border-left: 1px solid rgba(0,0,0,0.08);
+  }
+  .case-meta .cell:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+  [dir="rtl"] .case-meta .cell {
+    padding-left: 0;
+    padding-right: 28px;
+    border-left: 0;
+    border-right: 1px solid rgba(0,0,0,0.08);
+  }
+  [dir="rtl"] .case-meta .cell:first-child {
+    padding-right: 0;
+    border-right: 0;
+  }
+  .case-meta .lbl {
+    font-size: 13px;
+    color: #6E6E73;
+    margin-bottom: 8px;
+    letter-spacing: -0.005em;
+  }
+  .case-meta .val {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #0A0A0A;
+    line-height: 1.25;
+  }
+  @media (max-width: 760px) {
+    .case-meta { grid-template-columns: 1fr 1fr; gap: 24px; }
+    .case-meta .cell:nth-child(3) { padding-left: 0; border-left: 0; }
+    [dir="rtl"] .case-meta .cell:nth-child(3) { padding-right: 0; border-right: 0; }
+  }
+  @media (max-width: 480px) {
+    .case-meta { grid-template-columns: 1fr; }
+    .case-meta .cell { padding: 16px 0 0; border-top: 1px solid rgba(0,0,0,0.08); border-left: 0; }
+    .case-meta .cell:first-child { padding-top: 0; border-top: 0; }
+    [dir="rtl"] .case-meta .cell { border-right: 0; padding: 16px 0 0; }
+  }
+
+  /* OVERVIEW + sections */
+  .case-section {
+    padding: 96px 0 0;
+  }
+  .case-section h2 {
+    font-size: clamp(36px, 4.4vw, 56px);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+    margin: 0 0 32px;
+  }
+  .case-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 80px;
+    align-items: start;
+  }
+  @media (max-width: 880px) {
+    .case-grid { grid-template-columns: 1fr; gap: 32px; }
+  }
+  .case-prose p {
+    font-size: 18px;
+    line-height: 1.65;
+    color: #2A2A2A;
+    margin: 0 0 18px;
+  }
+  .case-prose p.muted { color: #6E6E73; }
+
+  /* GALLERY image slots */
+  .case-gallery {
+    margin-top: 56px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .case-gallery .slot {
+    aspect-ratio: 4/3;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+  }
+  .case-gallery .slot.wide { grid-column: 1 / -1; aspect-ratio: 16/8; }
+  .case-gallery .slot > image-slot { width: 100%; height: 100%; display: block; }
+  .thumb-code {
+    position: absolute; top: 14px; left: 14px; z-index: 3;
+    background: rgba(10,10,10,0.78); color: #fff;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.16em; padding: 6px 10px;
+    border-radius: 999px; pointer-events: none;
+    backdrop-filter: blur(8px);
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  [dir="rtl"] .thumb-code { left: auto; right: 14px; }
+  @media (max-width: 720px) {
+    .case-gallery { grid-template-columns: 1fr; }
+    .case-gallery .slot.wide { aspect-ratio: 4/3; }
+  }
+
+  /* NEXT NAV */
+  .next-nav {
+    margin: 120px 0 80px;
+    border-top: 1px solid rgba(0,0,0,0.08);
+    padding-top: 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .next-nav .lbl {
+    font-size: 13px; color: #6E6E73;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .next-nav a.next-link {
+    font-size: clamp(28px, 3vw, 40px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #0A0A0A;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    transition: gap 0.25s ease, color 0.2s ease;
+  }
+  .next-nav a.next-link:hover { gap: 20px; }
+  .next-nav a.next-link svg { width: 28px; height: 28px; }
+  .next-nav .home-link {
+    color: #6E6E73;
+    font-size: 14px;
+    transition: color 0.2s ease;
+  }
+  .next-nav .home-link:hover { color: #0A0A0A; }
+
+  /* DARK MODE */
+  body.dark { background: #0A0A0A; color: #F4F4F5; }
+  body.dark .brand img { filter: invert(1); }
+  body.dark .topbar { background: rgba(10,10,10,0.78); border-bottom-color: rgba(255,255,255,0.06); }
+  body.dark .nav { background: #18181B; }
+  body.dark .nav a { color: #F4F4F5; }
+  body.dark .nav a:hover { background: #232328; }
+  body.dark .icon-btn { background: #18181B; color: #F4F4F5; }
+  body.dark .icon-btn:hover { background: #232328; }
+  body.dark .case-eyebrow { background: #18181B; color: #F4F4F5; }
+  body.dark .display, body.dark .case-section h2 { color: #F4F4F5; }
+  body.dark .case-lead { color: rgba(244,244,245,0.82); }
+  body.dark .case-prose p { color: rgba(244,244,245,0.82); }
+  body.dark .case-prose p.muted { color: rgba(244,244,245,0.55); }
+  body.dark .breadcrumb,
+  body.dark .breadcrumb a { color: rgba(244,244,245,0.55); }
+  body.dark .breadcrumb a:hover { color: #F4F4F5; }
+  body.dark .breadcrumb .sep { color: rgba(244,244,245,0.25); }
+  body.dark .case-meta { background: #18181B; }
+  body.dark .case-meta .cell { border-left-color: rgba(255,255,255,0.08); }
+  body.dark .case-meta .lbl { color: rgba(244,244,245,0.55); }
+  body.dark .case-meta .val { color: #F4F4F5; }
+  body.dark .next-nav { border-top-color: rgba(255,255,255,0.10); }
+  body.dark .next-nav .lbl { color: rgba(244,244,245,0.55); }
+  body.dark .next-nav a.next-link { color: #F4F4F5; }
+  body.dark .next-nav .home-link { color: rgba(244,244,245,0.55); }
+  body.dark .next-nav .home-link:hover { color: #F4F4F5; }
+  body.dark [dir="rtl"] .case-meta .cell,
+  body.dark .case-meta .cell { border-color: rgba(255,255,255,0.08); }
+
+  [dir="rtl"] .display, [dir="rtl"] .case-section h2 { letter-spacing: 0; }
+</style>
+</head>
+<body class="dark">
+
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a href="Portfolio.html" class="brand" aria-label="Madd home">
+      <img src="assets/logo.svg" alt="Madd" />
+    </a>
+
+    <nav class="nav">
+      <a href="Portfolio.html#projects" data-i18n="nav.projects">Works</a>
+      <a href="Portfolio.html#identities" data-i18n="nav.identities">Identities</a>
+      <a href="Portfolio.html#coverage" data-i18n="nav.coverage">Coverage</a>
+      <a href="Portfolio.html#about" data-i18n="nav.about">About</a>
+      <a href="oman.html" data-i18n="nav.oman">This is Oman</a>
+    </nav>
+
+    <div class="header-controls">
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Toggle theme">
+        <svg class="moon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/>
+          <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M19.4 4.6l-1.8 1.8M6.4 17.6l-1.8 1.8"/>
+          </g>
+        </svg>
+      </button>
+      <button class="icon-btn" id="langBtn" type="button" aria-label="Switch language">
+        <span id="langLabel">AR</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="case-hero shell" style="padding: 88px 120px 56px">
+    <div class="breadcrumb">
+      <a href="Portfolio.html" data-i18n="bc.home">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="bc.back">All work</span>
+      </a>
+      <span class="sep">/</span>
+      <span id="bcSection"></span>
+      <span class="sep">/</span>
+      <span id="bcCode"></span>
+    </div>
+
+    <span class="case-eyebrow" id="caseEyebrow">—</span>
+    <h1 class="display case-title" id="caseTitle">—</h1>
+    <p class="case-lead" id="caseLead">—</p>
+
+    <div class="case-cover">
+      <image-slot id="HERO" shape="rect" placeholder="HERO · main image"></image-slot>
+    </div>
+
+    <div class="case-meta">
+      <div class="cell">
+        <div class="lbl" data-i18n="meta.client">Client</div>
+        <div class="val" id="metaClient">—</div>
+      </div>
+      <div class="cell">
+        <div class="lbl" data-i18n="meta.role">Role</div>
+        <div class="val" id="metaRole">—</div>
+      </div>
+      <div class="cell">
+        <div class="lbl" data-i18n="meta.duration">Duration</div>
+        <div class="val" id="metaDuration">—</div>
+      </div>
+      <div class="cell">
+        <div class="lbl" data-i18n="meta.scope">Scope</div>
+        <div class="val" id="metaScope">—</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="case-section shell" style="padding: 96px 120px 0px">
+    <h2 data-i18n="sec.overview">Overview</h2>
+    <div class="case-grid">
+      <div class="case-prose">
+        <p id="overviewLead" data-i18n="case.overview.lead">A short framing paragraph for the case study — what the work is, who it's for, why it matters.</p>
+      </div>
+      <div class="case-prose">
+        <p id="overviewBody1" data-i18n="case.overview.body1">Write 2–3 paragraphs about the brief, what was happening before, the questions the team was asking, and the constraint that shaped the direction.</p>
+        <p id="overviewBody2" class="muted" data-i18n="case.overview.body2">A second paragraph for context — research findings, audience, market notes, anything that helps the reader understand the decisions on the next pages.</p>
+      </div>
+    </div>
+
+    <div class="case-gallery">
+      <div class="slot wide">
+          <image-slot id="G-01" shape="rect" placeholder="G-01 · full-bleed shot"></image-slot>
+      </div>
+      <div class="slot">
+          <image-slot id="G-02" shape="rect" placeholder="G-02 · detail"></image-slot>
+      </div>
+      <div class="slot">
+          <image-slot id="G-03" shape="rect" placeholder="G-03 · detail"></image-slot>
+      </div>
+    </div>
+  </section>
+
+  <section class="case-section shell" style="padding: 96px 120px 0px">
+    <h2 data-i18n="sec.process">Process</h2>
+    <div class="case-grid">
+      <div class="case-prose">
+        <p data-i18n="case.process.lead">How the work was made — research, sketches, the decision moments.</p>
+      </div>
+      <div class="case-prose">
+        <p data-i18n="case.process.body1">Walk through 2–3 milestones. Keep it specific: what you tried, what you killed, what survived to the final version.</p>
+        <p class="muted" data-i18n="case.process.body2">Use the gallery below to show artefacts — wireframes, mood-boards, exploration screens. The user can drag images directly into each slot.</p>
+      </div>
+    </div>
+
+    <div class="case-gallery">
+      <div class="slot">
+          <image-slot id="G-04" shape="rect" placeholder="G-04 · process"></image-slot>
+      </div>
+      <div class="slot">
+          <image-slot id="G-05" shape="rect" placeholder="G-05 · process"></image-slot>
+      </div>
+      <div class="slot wide">
+          <image-slot id="G-06" shape="rect" placeholder="G-06 · final"></image-slot>
+      </div>
+    </div>
+  </section>
+
+  <section class="case-section shell" style="padding: 96px 120px 0px">
+    <h2 data-i18n="sec.outcome">Outcome</h2>
+    <div class="case-grid">
+      <div class="case-prose">
+        <p data-i18n="case.outcome.lead">What changed after launch — for the client, the audience, the team.</p>
+      </div>
+      <div class="case-prose">
+        <p data-i18n="case.outcome.body1">Numbers, quotes, signals. Keep it short and honest — three things that moved is enough.</p>
+      </div>
+    </div>
+  </section>
+
+  <nav class="next-nav shell" aria-label="Project navigation" style="margin: 120px 120px 80px">
+    <a href="Portfolio.html" class="home-link" data-i18n="nav.back">
+      ← <span data-i18n="bc.back">All work</span>
+    </a>
+    <div style="text-align: right;">
+      <div class="lbl" data-i18n="nav.nextLabel">Next case study</div>
+      <a href="#" id="nextLink" class="next-link">
+        <span id="nextTitle">—</span>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </nav>
+</main>
+
+<script>
+(function () {
+  /* ------------------------------------------------------------------
+     CASE STUDY DATA
+     Every card in Portfolio.html maps to a record here. Edit titles,
+     leads, and meta freely — the rest of the page wires itself up
+     from these strings + the image-slots persisted in the sidecar.
+     ------------------------------------------------------------------ */
+  const cases = {
+    'PROJ-01': { section: 'projects', eyebrow: 'Oman Promising Startups Accelerator',
+      title: 'Media plan design & execution',
+      lead: 'Full media-plan design and execution for the Oman Promising Startups Accelerator — strategy, content calendar, photography, and on-the-ground coverage.',
+      client: 'Riyada / Oman Accelerator', role: 'Media plan · Direction', duration: '12 weeks', scope: 'Strategy · Content · Photo',
+      eyebrowAr: 'مسرعة الشركات الناشئة العمانية الواعدة',
+      titleAr: 'تصميم وتنفيذ الخطة الإعلامية',
+      leadAr: 'تصميم وتنفيذ خطة إعلامية متكاملة لمسرعة الشركات الناشئة العمانية الواعدة — استراتيجية، تقويم محتوى، تصوير، وتغطية ميدانية.',
+      clientAr: 'مسرعة الأعمال العمانية', roleAr: 'خطة إعلامية · إخراج', durationAr: '١٢ أسبوعًا', scopeAr: 'استراتيجية · محتوى · تصوير',
+      cover: 'assets/cases/accelerator/cover.jpg' },
+
+    'PROJ-02': { section: 'projects', eyebrow: 'Barmajan · Ministry of Culture, Sports & Youth',
+      title: 'Barmajan',
+      lead: 'Full brand identity for Barmajan — the Ministry\'s Digital Transformation Hackathon: a digital transformation that inspires the future.',
+      client: 'Ministry of Culture, Sports & Youth', role: 'Brand identity', duration: '8 weeks', scope: 'Logo · Color · Type · Applications',
+      ovEn: 'Barmajan\'s identity centers on a digital transformation that inspires the future. Abstract 3D forms with purple-and-blue gradients evoke flowing data, AI, and motion, while symbolic marks drawn from the engravings and seals of the Majan civilization root the brand in heritage — bridging past and future. The system pairs KMR Apparat for Latin with Kufam and Zagel Arabic for headings and text.',
+      cover: 'assets/cases/barmajan/cover-new.jpg',
+      gallery: ['assets/cases/barmajan/logomark.jpg','assets/cases/barmajan/fonts.jpg','assets/cases/barmajan/elements.jpg','assets/cases/barmajan/elements-grid.jpg'],
+      eyebrowAr: 'هاكاثون التحول الرقمي - برمجان · وزارة الثقافة والرياضة والشباب',
+      titleAr: 'برمجان',
+      leadAr: 'هوية بصرية متكاملة لـ«برمجان» — هاكاثون التحول الرقمي: تحوّل رقمي يلهم المستقبل.',
+      ovAr: 'تتمحور هوية «برمجان» حول تحوّل رقمي يلهم المستقبل. أشكال تجريدية ثلاثية الأبعاد بتدرّجات بنفسجية وزرقاء توحي بتدفّق البيانات والذكاء الاصطناعي والحركة، فيما تستلهم الرموز من نقوش وأختام حضارة مَجان لتربط العلامة بجذورها التاريخية — جسرًا بين الماضي والمستقبل. يجمع النظام خط KMR Apparat اللاتيني مع Kufam وZagel Arabic للعناوين والنصوص.',
+      clientAr: 'وزارة الثقافة والرياضة والشباب', roleAr: 'هوية بصرية', durationAr: '٨ أسابيع', scopeAr: 'شعار · ألوان · خطوط · تطبيقات' },
+
+    'PROJ-03': { section: 'projects', eyebrow: 'Madd projects · Tadareesat Journey',
+      title: 'Visual identity',
+      lead: 'A visual identity for Tadareesat Journey — an internal Madd project celebrating Oman\'s coastal terrain.',
+      client: 'Madd Agency', role: 'Visual identity', duration: '6 weeks', scope: 'Identity · Mark · Print',
+      eyebrowAr: 'مشاريع مَدّ · رحلة تضاريس',
+      titleAr: 'هوية بصرية',
+      leadAr: 'هوية بصرية لـ "رحلة تضاريس" — مشروع داخلي من مَدّ يحتفي بطبيعة السواحل العمانية.',
+      clientAr: 'وكالة مَدّ', roleAr: 'هوية بصرية', durationAr: '٦ أسابيع', scopeAr: 'هوية · شعار · مطبوعات' },
+
+    'PROJ-04': { section: 'projects', eyebrow: 'Madd projects · Haneen',
+      title: 'Personal visual identity',
+      lead: 'A personal visual identity for "Haneen" — a wordmark and visual world built around warmth, longing, and writing.',
+      client: 'Haneen', role: 'Personal identity', duration: '4 weeks', scope: 'Wordmark · System · Photo',
+      eyebrowAr: 'مشاريع مَدّ · حنين',
+      titleAr: 'هوية بصرية شخصية',
+      leadAr: 'هوية بصرية شخصية لـ "حنين" — شعار نصي وعالم بصري حول الدفء والحنين والكتابة.',
+      clientAr: 'حنين', roleAr: 'هوية شخصية', durationAr: '٤ أسابيع', scopeAr: 'شعار · نظام · تصوير' },
+
+    'PROJ-05': { section: 'projects', eyebrow: 'Marketing campaign · Maaq',
+      title: 'Tallah | طلة',
+      lead: 'A marketing campaign for Tallah, a Saudi sandal brand — shot in Maaq, slow and warm.',
+      client: 'Tallah', role: 'Marketing campaign', duration: '5 weeks', scope: 'Direction · Photo · Copy',
+      eyebrowAr: 'حملة تسويقية · معك',
+      titleAr: 'طلة | Tallah',
+      leadAr: 'حملة تسويقية لعلامة طلّة السعودية للنعال الجلدية — صُوِّرت في مَعَك، بإيقاع هادئ ودافئ.',
+      clientAr: 'طلة', roleAr: 'حملة تسويقية', durationAr: '٥ أسابيع', scopeAr: 'إخراج · تصوير · نصوص',
+      cover: 'assets/cases/maaq/cover.jpg' },
+
+    'PROJ-06': { section: 'projects', eyebrow: 'For national coach Rashid Jaber',
+      title: 'Profile & CV design project',
+      lead: 'A profile-and-CV design system for national football coach Rashid Jaber — built around credentials, presence, and decades on the pitch.',
+      client: 'Rashid Jaber', role: 'Profile · CV design', duration: '3 weeks', scope: 'Design · Layout · Print',
+      eyebrowAr: 'للمدرب الوطني رشيد جابر',
+      titleAr: 'مشروع تصميم الملف التعريفي والسيرة الذاتية',
+      leadAr: 'تصميم ملف تعريفي وسيرة ذاتية للمدرب الوطني رشيد جابر — يبرز الشهادات، الحضور، وعقودًا من الخبرة في الملعب.',
+      clientAr: 'رشيد جابر', roleAr: 'ملف تعريفي · سيرة', durationAr: '٣ أسابيع', scopeAr: 'تصميم · إخراج · طباعة' },
+
+    'NIZWA': { section: 'projects', eyebrow: 'On the Path of Al-Busaʻid · Bank Nizwa',
+      title: 'On the Path of Al-Busaʻid',
+      lead: 'Brand campaign for Bank Nizwa.',
+      client: 'Bank Nizwa', role: 'Brand identity', duration: '—', scope: '—',
+      eyebrowAr: 'على درب البوسعيد · بنك نزوى',
+      titleAr: 'على درب البوسعيد',
+      leadAr: 'حملة هوية بصرية لبنك نزوى.',
+      clientAr: 'بنك نزوى', roleAr: 'هوية بصرية', durationAr: '—', scopeAr: '—',
+      cover: 'assets/cases/busaid/logo.png' },
+
+    'TATHMEER': { section: 'projects', eyebrow: 'Fi Baytina Ihsan · Tathmeer',
+      title: 'Fi Baytina Ihsan',
+      lead: 'Marketing campaign for Tathmeer.',
+      client: 'Tathmeer', role: 'Marketing campaign', duration: '—', scope: '—',
+      eyebrowAr: 'في بيتنا إحسان · شركة تثمير',
+      titleAr: 'في بيتنا إحسان',
+      leadAr: 'حملة تسويقية لشركة تثمير.',
+      clientAr: 'شركة تثمير', roleAr: 'حملة تسويقية', durationAr: '—', scopeAr: '—',
+      cover: 'assets/cases/tathmeer/cover.jpg' },
+
+    'COFFEE315': { section: 'projects', eyebrow: 'Marketing campaign · Coffee 315',
+      title: 'Marketing campaign',
+      lead: 'Marketing campaign for Coffee 315.',
+      client: 'Coffee 315', role: 'Marketing campaign', duration: '—', scope: '—',
+      eyebrowAr: 'حملة تسويقية · كوفي ٣١٥',
+      titleAr: 'حملة تسويقية',
+      leadAr: 'حملة تسويقية لكوفي ٣١٥.',
+      clientAr: 'كوفي ٣١٥', roleAr: 'حملة تسويقية', durationAr: '—', scopeAr: '—',
+      cover: 'assets/cases/coffee315/cover.jpg' },
+
+    'SKYPARK': { section: 'identities', eyebrow: 'Brand identity',
+      title: 'SKYPARK',
+      lead: 'Brand identity for SKYPARK.',
+      client: 'SKYPARK', role: 'Brand identity', duration: '—', scope: '—',
+      eyebrowAr: 'هوية بصرية',
+      titleAr: 'SKYPARK',
+      leadAr: 'هوية بصرية لـ SKYPARK.',
+      clientAr: 'SKYPARK', roleAr: 'هوية بصرية', durationAr: '—', scopeAr: '—',
+      cover: 'assets/cases/skypark/cover.jpg' },
+
+    'PADEL': { section: 'identities', eyebrow: 'Brand identity',
+      title: 'Padel Arena',
+      lead: 'Brand identity for Padel Arena.',
+      client: 'Padel Arena', role: 'Brand identity', duration: '—', scope: '—',
+      eyebrowAr: 'هوية بصرية',
+      titleAr: 'Padel Arena',
+      leadAr: 'هوية بصرية لـ Padel Arena.',
+      clientAr: 'Padel Arena', roleAr: 'هوية بصرية', durationAr: '—', scopeAr: '—',
+      cover: 'assets/cases/padel/cover.jpg' },
+
+    'ID315': { section: 'identities', eyebrow: 'Brand identity',
+      title: '315',
+      lead: 'Brand identity for 315.',
+      client: '315', role: 'Brand identity', duration: '—', scope: '—',
+      eyebrowAr: 'هوية بصرية',
+      titleAr: '٣١٥',
+      leadAr: 'هوية بصرية لـ ٣١٥.',
+      clientAr: '٣١٥', roleAr: 'هوية بصرية', durationAr: '—', scopeAr: '—',
+      cover: 'assets/cases/id315/cover.jpg' },
+
+    'SHIRAA': { section: 'identities', eyebrow: 'Brand identity',
+      title: 'Shiraa',
+      lead: 'Brand identity for Shiraa.',
+      client: 'Shiraa', role: 'Brand identity', duration: '—', scope: '—',
+      eyebrowAr: 'هوية بصرية',
+      titleAr: 'شراع',
+      leadAr: 'هوية بصرية لـ شراع.',
+      clientAr: 'شراع', roleAr: 'هوية بصرية', durationAr: '—', scopeAr: '—',
+      cover: 'assets/cases/shiraa/cover.jpg', coverFit: 'contain', coverBg: '#EDEDED' },
+
+    'ID-01': { section: 'identities', eyebrow: 'Personal identity',
+      title: 'Abdallah Al Balushi',
+      lead: 'A personal visual identity for Abdallah Al Balushi — Arabic wordmark and English typesetting on a calm slate ground.',
+      client: 'Abdallah Al Balushi', role: 'Personal identity', duration: '3 weeks', scope: 'Wordmark · Logotype',
+      eyebrowAr: 'هوية شخصية',
+      titleAr: 'عبدالله البلوشي',
+      leadAr: 'هوية بصرية شخصية لعبدالله البلوشي — شعار عربي مع إخراج لاتيني هادئ على خلفية رمادية.',
+      clientAr: 'عبدالله البلوشي', roleAr: 'هوية شخصية', durationAr: '٣ أسابيع', scopeAr: 'شعار · هوية',
+      cover: 'assets/cases/balushi/cover.jpg' },
+
+    'SMASH': { section: 'identities', eyebrow: 'Brand identity',
+      title: 'SMASH Padel Club',
+      lead: 'Brand identity for SMASH Padel Club.',
+      client: 'SMASH Padel Club', role: 'Brand identity', duration: '—', scope: '—',
+      eyebrowAr: 'هوية بصرية',
+      titleAr: 'سماش بادل كلوب',
+      leadAr: 'هوية بصرية لنادي سماش للبادل.',
+      clientAr: 'سماش بادل كلوب', roleAr: 'هوية بصرية', durationAr: '—', scopeAr: '—' },
+
+    'SIDRA': { section: 'identities', eyebrow: 'Brand identity',
+      title: 'Sidra Platform',
+      lead: 'Brand identity for Sidra — a playful, colorful platform mark.',
+      client: 'Sidra', role: 'Brand identity', duration: '—', scope: '—',
+      eyebrowAr: 'هوية بصرية',
+      titleAr: 'منصة سدرة',
+      leadAr: 'هوية بصرية لمنصة سدرة — علامة حيوية ملوّنة.',
+      clientAr: 'منصة سدرة', roleAr: 'هوية بصرية', durationAr: '—', scopeAr: '—',
+      cover: 'assets/cases/sidra/cover.jpg', coverFit: 'contain', coverBg: '#ffffff' },
+
+    'ID-02': { section: 'identities', eyebrow: 'Brand identity',
+      title: 'ORKI',
+      lead: 'A bold, industrial wordmark for ORKI — geometric typography on a dark architectural ground.',
+      client: 'ORKI', role: 'Brand identity', duration: '6 weeks', scope: 'Wordmark · System · Signage',
+      eyebrowAr: 'هوية بصرية',
+      titleAr: 'ORKI',
+      leadAr: 'شعار نصي صناعي جريء لـ ORKI — طباعة هندسية على خلفية معمارية داكنة.',
+      clientAr: 'ORKI', roleAr: 'هوية بصرية', durationAr: '٦ أسابيع', scopeAr: 'شعار · نظام · لافتات',
+      cover: 'assets/cases/orki/cover.jpg' },
+
+    'ID-03': { section: 'identities', eyebrow: 'Cultural identity',
+      title: 'On the Path of Al-Busaʻid',
+      lead: 'A calligraphic Arabic identity for "On the Path of Al-Busaʻid" — a cultural / heritage project celebrating the Omani dynasty.',
+      client: 'Cultural project', role: 'Cultural identity', duration: '5 weeks', scope: 'Calligraphy · Identity',
+      eyebrowAr: 'هوية ثقافية',
+      titleAr: 'على درب البوسعيد',
+      leadAr: 'هوية بصرية بخط عربي تشكيلي لمشروع "على درب البوسعيد" — مبادرة ثقافية تحتفي بالتاريخ العماني.',
+      clientAr: 'مشروع ثقافي', roleAr: 'هوية ثقافية', durationAr: '٥ أسابيع', scopeAr: 'خط · هوية' },
+
+    'ID-04': { section: 'identities', eyebrow: 'Event identity',
+      title: 'Muscat Arbitration Days',
+      lead: 'A bilingual visual identity for Muscat Arbitration Days — an annual gathering of arbitrators and legal practitioners hosted in Oman.',
+      client: 'Muscat Arbitration Days', role: 'Event identity', duration: '8 weeks', scope: 'Identity · Print · Signage',
+      eyebrowAr: 'هوية فعالية',
+      titleAr: 'أيام مسقط للتحكيم',
+      leadAr: 'هوية بصرية ثنائية اللغة لـ "أيام مسقط للتحكيم" — ملتقى سنوي للمحكّمين والقانونيين في عمان.',
+      clientAr: 'أيام مسقط للتحكيم', roleAr: 'هوية فعالية', durationAr: '٨ أسابيع', scopeAr: 'هوية · مطبوعات · لافتات',
+      cover: 'assets/cases/arbitration/cover-new.jpg', coverFit: 'contain', coverBg: '#F6F2E9' },
+
+    'ID-05': { section: 'identities', eyebrow: 'Brand identity',
+      title: 'Haneen | حنين',
+      lead: 'A bilingual brand identity for Haneen — a calligraphic Arabic wordmark paired with confident Latin letterforms in warm sand on charcoal.',
+      client: 'Haneen', role: 'Brand identity', duration: '6 weeks', scope: 'Wordmark · System · Print',
+      eyebrowAr: 'هوية بصرية',
+      titleAr: 'حنين | Haneen',
+      leadAr: 'هوية بصرية ثنائية اللغة لـ "حنين" — شعار عربي بخط تشكيلي مع حروف لاتينية واثقة، بدرجة رملية على خلفية فحمية.',
+      clientAr: 'حنين', roleAr: 'هوية بصرية', durationAr: '٦ أسابيع', scopeAr: 'شعار · نظام · مطبوعات' },
+
+    'ID-06': { section: 'identities', eyebrow: 'Brand identity',
+      title: 'Tallah | طلة',
+      lead: 'A bilingual brand identity for Tallah — a single-line Arabic wordmark with a tasdid mark, paired with restrained Latin caps over a brand-process backdrop.',
+      client: 'Tallah', role: 'Brand identity', duration: '5 weeks', scope: 'Wordmark · System · Print',
+      eyebrowAr: 'هوية بصرية',
+      titleAr: 'طلة | Tallah',
+      leadAr: 'هوية بصرية ثنائية اللغة لـ "طلّة" — شعار عربي بخط متصل بشدّة واضحة، مع حروف لاتينية هادئة فوق خلفية عملية.',
+      clientAr: 'طلة', roleAr: 'هوية بصرية', durationAr: '٥ أسابيع', scopeAr: 'شعار · نظام · مطبوعات' },
+
+    'COV-01': { section: 'coverage', eyebrow: 'Coverage · Photo · 2026',
+      title: 'Berlin Design Week 2026',
+      lead: "Three days, six venues, 240 frames — covering the city's biggest design event end-to-end.",
+      client: 'BDW 2026', role: 'Coverage · Photo', duration: '3 days · on-site', scope: 'Photo · Recap · Press',
+      eyebrowAr: 'تغطية · صور · 2026',
+      titleAr: 'أسبوع برلين للتصميم ٢٠٢٦',
+      leadAr: 'ثلاثة أيام، ستة مواقع، ٢٤٠ لقطة — تغطية أكبر حدث تصميم في المدينة من بدايته لنهايته.',
+      clientAr: 'BDW 2026', roleAr: 'تغطية · صور', durationAr: '٣ أيام · في الموقع', scopeAr: 'صور · ملخّص · صحافة' },
+
+    'COV-02': { section: 'coverage', eyebrow: 'Coverage · Film · 2025',
+      title: 'Founders Summit — Lisbon',
+      lead: "Keynote film and editorial portraits for an invitation-only founders' summit on the coast.",
+      client: "FS '25", role: 'Coverage · Film', duration: '4 days', scope: 'Film · Portrait · Recap',
+      eyebrowAr: 'تغطية · فيلم · 2025',
+      titleAr: 'قمة المؤسسين — لشبونة',
+      leadAr: 'فيلم كلمة افتتاحية وبورتريهات تحريرية لقمة مؤسسين مغلقة على الساحل.',
+      clientAr: "FS '25", roleAr: 'تغطية · فيلم', durationAr: '٤ أيام', scopeAr: 'فيلم · بورتريه · ملخّص' },
+
+    'COV-03': { section: 'coverage', eyebrow: 'Coverage · Brand · 2025',
+      title: 'Noir Gallery — Opening Night',
+      lead: 'Brand reveal and press kit for the launch of an independent gallery in Mitte.',
+      client: 'Noir Gallery', role: 'Coverage · Brand', duration: '1 evening', scope: 'Photo · Brand · Press',
+      eyebrowAr: 'تغطية · هوية · 2025',
+      titleAr: 'معرض نوار — حفل افتتاح',
+      leadAr: 'إطلاق هوية ومجموعة صحفية لافتتاح معرض مستقل في حيّ Mitte.',
+      clientAr: 'معرض نوار', roleAr: 'تغطية · هوية', durationAr: 'مساء واحد', scopeAr: 'صور · هوية · صحافة' },
+
+    'COV-04': { section: 'coverage', eyebrow: 'Coverage · Editorial · 2026',
+      title: 'Solène — Launch Night',
+      lead: 'Editorial coverage and short-form social cuts from the launch of a new fragrance line.',
+      client: 'Solène', role: 'Coverage · Editorial', duration: '1 evening', scope: 'Photo · Film · Social',
+      eyebrowAr: 'تغطية · تحرير · 2026',
+      titleAr: 'سولين — حفل إطلاق',
+      leadAr: 'تغطية تحريرية ومقاطع اجتماعية قصيرة من حفل إطلاق خط عطور جديد.',
+      clientAr: 'سولين', roleAr: 'تغطية · تحرير', durationAr: 'مساء واحد', scopeAr: 'صور · فيلم · سوشال' }
+  };
+
+  /* ------------------------------------------------------------------
+     i18n — labels and section names. Per-case titles stay English here;
+     translate them by adding `titleAr` / `leadAr` etc. on each record.
+     ------------------------------------------------------------------ */
+  const i18n = {
+    ar: {
+      'nav.projects': 'الأعمال',
+      'nav.identities': 'الهويات',
+      'nav.coverage': 'التغطيات',
+      'nav.about': 'عنّا',
+      'nav.oman': 'هذي عُمان',
+      'nav.about': 'عنّا',
+      'nav.back': '← كل الأعمال',
+      'nav.nextLabel': 'المشروع التالي',
+      'bc.home': 'الرئيسية',
+      'bc.back': 'كل الأعمال',
+      'meta.client': 'العميل',
+      'meta.role': 'الدور',
+      'meta.duration': 'المدّة',
+      'meta.scope': 'النطاق',
+      'sec.overview': 'نظرة عامة',
+      'sec.process': 'مسار العمل',
+      'sec.outcome': 'النتيجة',
+      'case.overview.lead': 'فقرة موجزة عن دراسة الحالة — ما هو المشروع، لمن صُمِّم، ولماذا يهم.',
+      'case.overview.body1': 'اكتب فقرتين أو ثلاثًا عن الموجز، وما الذي كان قائمًا قبل المشروع، والأسئلة التي طرحها الفريق، والقيود التي شكّلت الاتجاه.',
+      'case.overview.body2': 'فقرة ثانية للسياق — نتائج البحث، الجمهور، ملاحظات السوق، وأي شيء يساعد القارئ على فهم القرارات في الصفحات التالية.',
+      'case.process.lead': 'كيف صُنع العمل — البحث، الرسومات، لحظات اتخاذ القرار.',
+      'case.process.body1': 'تجوّل عبر مرحلتين أو ثلاث. كن دقيقًا: ما الذي جرّبته، ما الذي أوقفته، وما الذي وصل إلى النسخة النهائية.',
+      'case.process.body2': 'استخدم المعرض أدناه لعرض المواد — وايرفريم، لوحات إلهام، شاشات استكشاف. يمكنك سحب الصور إلى كل خانة.',
+      'case.outcome.lead': 'ما الذي تغيّر بعد الإطلاق — للعميل، للجمهور، للفريق.',
+      'case.outcome.body1': 'أرقام، اقتباسات، إشارات. اجعلها قصيرة وصادقة — ثلاثة أشياء تحرّكت تكفي.'
+    }
+  };
+
+  const sectionNames = {
+    en: { projects: 'Works', identities: 'Identities', coverage: 'Coverage' },
+    ar: { projects: 'الأعمال', identities: 'الهويات', coverage: 'التغطيات' }
+  };
+
+  /* Merge employee-added cases (from the dashboard / localStorage) */
+  try {
+    function mergeCms(key, section){
+      (JSON.parse(localStorage.getItem(key)||'[]')||[]).forEach(function(it){
+        cases[it.id] = {
+          section: section, _cms: true, cover: it.img,
+          eyebrow: it.catEn||it.catAr||'', title: it.nameEn||it.nameAr||'', lead: it.leadEn||it.leadAr||'',
+          client: it.clientEn||'—', role: it.roleEn||'—', duration: it.durEn||'—', scope: it.scopeEn||'—',
+          eyebrowAr: it.catAr||it.catEn||'', titleAr: it.nameAr||it.nameEn||'', leadAr: it.leadAr||it.leadEn||'',
+          clientAr: it.clientAr||'—', roleAr: it.roleAr||'—', durationAr: it.durAr||'—', scopeAr: it.scopeAr||'—',
+          ovEn: it.ovEn||'', ovAr: it.ovAr||'', gallery: it.gallery||[]
+        };
+      });
+    }
+    mergeCms('madd:cms:works','projects');
+    mergeCms('madd:cms:identities','identities');
+  } catch(e){}
+
+  /* ------------------------------------------------------------------
+     RESOLVE the active case + render
+     ------------------------------------------------------------------ */
+  const params = new URLSearchParams(location.search);
+  const rawId = params.get('id') || 'PROJ-01';
+  // built-in ids are upper-case (PROJ-01); CMS ids keep their original case
+  const id = cases[rawId] ? rawId : (cases[rawId.toUpperCase()] ? rawId.toUpperCase() : 'PROJ-01');
+  const data = cases[id] || cases['PROJ-01'];
+  const ids = Object.keys(cases);
+  const nextId = ids[(ids.indexOf(id) + 1) % ids.length];
+  const nextData = cases[nextId];
+
+  document.title = data.title + ' — Madd';
+  document.getElementById('bcCode').textContent = id;
+  document.getElementById('nextLink').href = 'case.html?id=' + nextId;
+
+  // Image-slot ids are namespaced per case so each case has its own
+  // dropped images. Rewrite the four slots' ids in place.
+  document.querySelectorAll('image-slot').forEach(el => {
+    const base = el.id;
+    el.id = id + '-' + base;
+    // also update the visible code badge above the slot
+    const code = el.id;
+    const sib = el.parentElement && el.parentElement.querySelector('.thumb-code');
+    if (sib) sib.textContent = code;
+    const ph = el.getAttribute('placeholder') || '';
+    el.setAttribute('placeholder', code + (ph.includes('·') ? ' · ' + ph.split('·').slice(1).join('·').trim() : ''));
+  });
+
+  /* ------------------------------------------------------------------
+     THEME + LANGUAGE TOGGLES (same protocol as Portfolio.html)
+     ------------------------------------------------------------------ */
+  const LANG_KEY = 'madd:lang';
+  const THEME_KEY = 'madd:theme';
+
+  function applyLang(lang) {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.dataset.i18n;
+      if (!el.dataset.i18nEn) el.dataset.i18nEn = el.innerHTML.trim();
+      if (lang === 'en') {
+        el.innerHTML = el.dataset.i18nEn;
+      } else if (i18n.ar[key]) {
+        el.innerHTML = i18n.ar[key];
+      }
+    });
+    document.getElementById('bcSection').textContent =
+      sectionNames[lang][data.section] || sectionNames.en[data.section];
+
+    // Case-specific copy: use Arabic variants when lang=ar, fall back to English
+    const ar = lang === 'ar';
+    const pick = (k) => ar && data[k + 'Ar'] ? data[k + 'Ar'] : data[k];
+    document.getElementById('caseEyebrow').textContent = pick('eyebrow');
+    document.getElementById('caseTitle').textContent   = pick('title');
+    document.getElementById('caseLead').textContent    = pick('lead');
+    document.getElementById('metaClient').textContent  = pick('client');
+    document.getElementById('metaRole').textContent    = pick('role');
+    document.getElementById('metaDuration').textContent= pick('duration');
+    document.getElementById('metaScope').textContent   = pick('scope');
+    const nt = (ar && nextData.titleAr ? nextData.titleAr : nextData.title);
+    document.getElementById('nextTitle').textContent = nt.split('—')[0].trim();
+    // Case-specific overview text (CMS items or built-ins with ov fields)
+    if (data._cms || data.ovEn || data.ovAr) {
+      var ov = ar ? (data.ovAr || data.leadAr || '') : (data.ovEn || data.leadEn || '');
+      var ovEl = document.getElementById('overviewLead'); if (ovEl) ovEl.textContent = ov;
+      var b1 = document.getElementById('overviewBody1'); if (b1) b1.textContent = '';
+      var b2 = document.getElementById('overviewBody2'); if (b2) b2.textContent = '';
+    }
+    const langLabel = document.getElementById('langLabel');
+    if (langLabel) langLabel.textContent = lang === 'ar' ? 'EN' : 'AR';
+    try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+  }
+  function applyTheme(theme) {
+    document.body.classList.toggle('dark', theme === 'dark');
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+  }
+
+  let savedTheme = 'dark', savedLang = 'en';
+  try {
+    savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+    savedLang = localStorage.getItem(LANG_KEY) || 'en';
+  } catch (e) {}
+  applyTheme(savedTheme);
+  applyLang(savedLang);
+
+  /* Imagery handling:
+     - data.cover  → fill the HERO cover image
+     - data.gallery→ render an explicit gallery (and hide the boilerplate Process/Outcome)
+     - otherwise   → leave the empty image-slots in place so more images can be uploaded */
+  if (data._cms || data.cover || (data.gallery && data.gallery.length)) {
+    var cover = document.querySelector('.case-cover');
+    if (data.cover && cover) {
+      var fit = data.coverFit || 'cover';
+      var cbg = data.coverBg || '#F4F4F5';
+      var bg = fit === 'contain' ? 'background:'+cbg+';' : '';
+      cover.innerHTML =
+        '<img alt="" style="width:100%;height:100%;object-fit:'+fit+';'+bg+'padding:'+(fit==='contain'?'6%':'0')+'" src="'+data.cover+'" />';
+      if (bg) cover.style.background = cbg;
+    }
+    var galleries = document.querySelectorAll('.case-gallery');
+    var imgs = data.gallery || [];
+    var secs = document.querySelectorAll('main .case-section');
+    if (imgs.length && galleries[0]) {
+      // explicit gallery — render it, and drop the empty boilerplate sections
+      galleries[0].innerHTML = imgs.map(function(src, i){
+        var wide = (imgs.length % 2 === 1 && i === 0) ? ' wide' : '';
+        return '<div class="slot'+wide+'"><img alt="" style="width:100%;height:100%;object-fit:cover" src="'+src+'" /></div>';
+      }).join('');
+      for (var gi = 1; gi < galleries.length; gi++) galleries[gi].style.display = 'none';
+      if (secs[1]) secs[1].style.display = 'none';
+      if (secs[2]) secs[2].style.display = 'none';
+    }
+    // no explicit gallery: keep the empty image-slots available for upload
+  }
+
+  document.getElementById('themeBtn').addEventListener('click', () =>
+    applyTheme(document.body.classList.contains('dark') ? 'light' : 'dark'));
+  document.getElementById('langBtn').addEventListener('click', () =>
+    applyLang(document.documentElement.lang === 'ar' ? 'en' : 'ar'));
+})();
+</script>
+
+</body>
+</html>

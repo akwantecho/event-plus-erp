@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>لوحة تحكم مَدّ · Madd Dashboard</title>
+<link rel="stylesheet" href="colors_and_type.css" />
+<style>
+  @font-face { font-family:'FatimahArabic'; font-weight:400; font-style:normal; font-display:swap; src:url('fonts/FatimahArabicITF-Light.otf') format('opentype'); }
+  @font-face { font-family:'FatimahArabic'; font-weight:500; font-style:normal; font-display:swap; src:url('fonts/FatimahArabicITF-Medium.otf') format('opentype'); }
+  @font-face { font-family:'FatimahArabic'; font-weight:600; font-style:normal; font-display:swap; src:url('fonts/FatimahArabicITF-Medium.otf') format('opentype'); }
+  @font-face { font-family:'FatimahArabic'; font-weight:700; font-style:normal; font-display:swap; src:url('fonts/FatimahArabicITF-Medium.otf') format('opentype'); }
+</style>
+<style>
+  :root {
+    --bg:#0A0A0A; --surface:#161618; --surface-2:#202024; --line:rgba(255,255,255,0.10);
+    --fg:#F4F4F5; --muted:rgba(244,244,245,0.55); --accent:#DD6E2B; --green:#3CA05A; --danger:#E0533B;
+    --font-disp:'FatimahArabic','IBM Plex Sans Arabic',sans-serif;
+    --font-body:'FatimahArabic','IBM Plex Sans Arabic','Inter',sans-serif;
+    --font-latin:'Inter',system-ui,sans-serif;
+    --ease:cubic-bezier(0.22,0.61,0.36,1);
+  }
+  *,*::before,*::after { box-sizing:border-box; }
+  html,body { margin:0; padding:0; }
+  body {
+    font-family:var(--font-body); background:var(--bg); color:var(--fg);
+    -webkit-font-smoothing:antialiased; line-height:1.6; min-height:100vh;
+  }
+  a { color:inherit; text-decoration:none; }
+  img { display:block; max-width:100%; }
+  .wrap { max-width:960px; margin:0 auto; padding:0 24px; }
+
+  /* ---------- login gate ---------- */
+  .gate { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+  .gate-card {
+    width:min(420px,100%); background:var(--surface); border:1px solid var(--line);
+    border-radius:24px; padding:40px 34px; text-align:center;
+  }
+  .gate-logo { height:38px; margin:0 auto 24px; filter:invert(1); }
+  .gate h1 { font-family:var(--font-disp); font-weight:700; font-size:26px; margin:0 0 8px; letter-spacing:-0.02em; }
+  .gate p { color:var(--muted); font-size:14.5px; margin:0 0 26px; }
+  .gate input {
+    width:100%; text-align:center; letter-spacing:0.3em; font-family:var(--font-latin);
+    background:var(--bg); border:1px solid var(--line); color:var(--fg);
+    border-radius:13px; padding:15px; font-size:18px; outline:none; transition:border-color .2s;
+  }
+  .gate input:focus { border-color:var(--accent); }
+  .gate .err { color:var(--danger); font-size:13px; margin-top:12px; min-height:18px; }
+  .gate-back {
+    display:inline-flex; align-items:center; gap:7px; margin-top:20px;
+    color:var(--muted); font-size:13.5px; font-weight:600;
+    transition:color .2s ease;
+  }
+  .gate-back:hover { color:var(--fg); }
+  .gate-back svg { width:15px; height:15px; }
+  .btn {
+    border:none; cursor:pointer; border-radius:13px; font-family:inherit; font-weight:700;
+    transition:transform .15s ease, background .2s ease, opacity .2s ease;
+  }
+  .btn:hover { transform:translateY(-1px); }
+  .btn:active { transform:scale(0.98); }
+  .btn-primary { background:var(--fg); color:var(--bg); font-size:16px; padding:15px 22px; width:100%; margin-top:18px; }
+  .btn-accent { background:var(--accent); color:#fff; padding:13px 24px; font-size:15px; }
+
+  /* ---------- app ---------- */
+  .app { display:none; }
+  .app.show { display:block; }
+  .topbar { position:sticky; top:0; z-index:20; background:rgba(10,10,10,0.86); backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
+  .topbar-inner { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 0; }
+  .brand-row { display:flex; align-items:center; gap:14px; }
+  .brand-row img { height:30px; filter:invert(1); }
+  .brand-row .tag { font-size:12px; color:var(--muted); border-inline-start:1px solid var(--line); padding-inline-start:14px; }
+  .top-actions { display:flex; align-items:center; gap:8px; }
+  .mini-btn {
+    border:1px solid var(--line); background:transparent; color:var(--fg); cursor:pointer;
+    font-family:inherit; font-size:13px; font-weight:600; padding:9px 14px; border-radius:999px;
+    transition:background .2s; display:inline-flex; align-items:center; gap:7px;
+  }
+  .mini-btn:hover { background:var(--surface-2); }
+  .mini-btn svg { width:14px; height:14px; }
+
+  .hero { padding:38px 0 10px; }
+  .hero h2 { font-family:var(--font-disp); font-weight:700; font-size:32px; margin:0 0 6px; letter-spacing:-0.02em; }
+  .hero p { color:var(--muted); margin:0; font-size:15px; max-width:60ch; }
+  .note {
+    display:flex; gap:11px; align-items:flex-start; background:rgba(221,110,43,0.10); border:1px solid rgba(221,110,43,0.25);
+    border-radius:14px; padding:14px 16px; margin:22px 0 4px; font-size:13.5px; color:var(--fg);
+  }
+  .note svg { width:18px; height:18px; flex-shrink:0; color:var(--accent); margin-top:2px; }
+  .note b { color:var(--accent); }
+
+  /* tabs */
+  .tabs { display:flex; gap:6px; background:var(--surface); padding:6px; border-radius:999px; margin:28px 0 0; width:max-content; max-width:100%; flex-wrap:wrap; }
+  .tab { border:none; background:transparent; color:var(--fg); cursor:pointer; font-family:inherit; font-size:14.5px; font-weight:600; padding:11px 20px; border-radius:999px; transition:background .2s, color .2s; }
+  .tab.active { background:var(--accent); color:#fff; }
+
+  .panel { display:none; padding:28px 0 80px; }
+  .panel.show { display:block; }
+
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:26px; margin-bottom:22px; }
+  .card h3 { font-family:var(--font-disp); font-weight:700; font-size:20px; margin:0 0 4px; letter-spacing:-0.015em; }
+  .card .sub { color:var(--muted); font-size:13.5px; margin:0 0 22px; }
+
+  .group-title { font-size:12px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); margin:26px 0 14px; padding-top:18px; border-top:1px solid var(--line); }
+  .group-title:first-of-type { border-top:none; padding-top:0; margin-top:6px; }
+
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:620px){ .form-grid{ grid-template-columns:1fr; } }
+  .field { display:flex; flex-direction:column; }
+  .field.full { grid-column:1 / -1; }
+  .field label { font-size:13px; font-weight:600; color:var(--muted); margin-bottom:7px; }
+  .field .hint { font-weight:500; color:var(--muted); opacity:.7; font-size:11.5px; }
+  .field input, .field select, .field textarea {
+    background:var(--bg); border:1px solid var(--line); color:var(--fg);
+    border-radius:11px; padding:12px 14px; font-family:inherit; font-size:15px; outline:none;
+    transition:border-color .2s, background .2s;
+  }
+  .field textarea { resize:vertical; min-height:74px; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color:var(--accent); }
+  .field input::placeholder, .field textarea::placeholder { color:var(--muted); opacity:.7; }
+  .field input[dir="ltr"] { text-align:left; }
+
+  /* image dropzone */
+  .drop {
+    border:1.5px dashed var(--line); border-radius:14px; padding:18px; text-align:center;
+    cursor:pointer; transition:border-color .2s, background .2s; color:var(--muted); font-size:14px;
+    display:flex; flex-direction:column; align-items:center; gap:8px; min-height:120px; justify-content:center;
+  }
+  .drop:hover, .drop.over { border-color:var(--accent); background:rgba(221,110,43,0.06); color:var(--fg); }
+  .drop svg { width:26px; height:26px; opacity:.6; }
+  .drop img { max-height:140px; border-radius:9px; }
+  .form-foot { display:flex; gap:10px; align-items:center; margin-top:22px; }
+  .save-msg { font-size:13.5px; color:var(--green); font-weight:600; opacity:0; transition:opacity .25s; }
+  .save-msg.show { opacity:1; }
+
+  /* multi-image gallery uploader */
+  .gallery-strip { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+  .gthumb { position:relative; width:88px; height:66px; border-radius:9px; overflow:hidden; border:1px solid var(--line); }
+  .gthumb img { width:100%; height:100%; object-fit:cover; }
+  .gthumb button { position:absolute; top:4px; inset-inline-end:4px; width:21px; height:21px; border-radius:50%; border:none; background:rgba(0,0,0,0.62); color:#fff; cursor:pointer; font-size:13px; line-height:1; display:flex; align-items:center; justify-content:center; padding:0; }
+  .gthumb button:hover { background:var(--danger); }
+  .drop.small { min-height:84px; padding:14px; }
+
+  /* item list */
+  .list-title { font-size:13px; font-weight:700; letter-spacing:0.08em; color:var(--muted); text-transform:uppercase; margin:6px 0 14px; }
+  .reg-badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; margin-inline-start:8px; vertical-align:middle; }
+  .reg-badge.builtin { background:rgba(120,120,130,0.18); color:var(--muted); }
+  .reg-badge.added { background:rgba(221,110,43,0.16); color:var(--accent); }
+  .item.readonly { opacity:0.92; }
+  .item-open { border:none; background:transparent; color:var(--muted); cursor:pointer; padding:8px; border-radius:8px; transition:color .2s, background .2s; flex-shrink:0; text-decoration:none; display:inline-flex; }
+  .item-open:hover { color:var(--fg); background:rgba(255,255,255,0.06); }
+  .item-open svg { width:16px; height:16px; }
+  .items { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  @media (max-width:620px){ .items{ grid-template-columns:1fr; } }
+  .item { display:flex; gap:14px; background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:12px; align-items:center; }
+  .item-thumb { width:60px; height:60px; border-radius:10px; overflow:hidden; flex-shrink:0; background:var(--surface-2); display:flex; align-items:center; justify-content:center; color:var(--muted); }
+  .item-thumb img { width:100%; height:100%; object-fit:cover; }
+  .item-thumb.contain img { object-fit:contain; padding:8px; }
+  .item-thumb svg { width:22px; height:22px; }
+  .item-main { flex:1; min-width:0; }
+  .item-name { font-weight:700; font-size:15px; margin:0 0 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .item-meta { font-size:12.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .item-del { border:none; background:transparent; color:var(--muted); cursor:pointer; padding:8px; border-radius:8px; transition:color .2s, background .2s; flex-shrink:0; }
+  .item-del:hover { color:var(--danger); background:rgba(224,83,59,0.10); }
+  .item-del svg { width:17px; height:17px; }
+  .empty { color:var(--muted); font-size:14px; text-align:center; padding:26px; border:1px dashed var(--line); border-radius:14px; }
+  .pricetag { font-family:var(--font-latin); font-weight:700; }
+
+  .toast { position:fixed; inset-inline:0; bottom:26px; margin:0 auto; width:max-content; max-width:90vw; background:var(--fg); color:var(--bg); font-size:14px; font-weight:600; padding:13px 22px; border-radius:999px; box-shadow:0 12px 40px rgba(0,0,0,0.4); z-index:120; opacity:0; transform:translateY(14px); transition:opacity .3s var(--ease), transform .3s var(--ease); }
+  .toast.show { opacity:1; transform:translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ============================ LOGIN GATE ============================ -->
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <img class="gate-logo" src="assets/logo.svg" alt="Madd" />
+    <h1>لوحة تحكم مَدّ</h1>
+    <p>خاصة بموظفي شركة مَدّ. أدخل رمز الدخول للمتابعة.</p>
+    <input id="codeInput" type="password" inputmode="numeric" placeholder="• • • •" autocomplete="off" />
+    <div class="err" id="codeErr"></div>
+    <button class="btn btn-primary" id="loginBtn" type="button">دخول</button>
+    <a class="gate-back" href="Portfolio.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      العودة إلى الموقع
+    </a>
+  </div>
+</div>
+
+<!-- ============================ APP ============================ -->
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand-row">
+        <img src="assets/logo.svg" alt="Madd" />
+        <span class="tag">لوحة التحكم</span>
+      </div>
+      <div class="top-actions">
+        <a class="mini-btn" href="Portfolio.html" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          عرض الموقع
+        </a>
+        <button class="mini-btn" id="logoutBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          خروج
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="hero">
+      <h2>محتوى الموقع</h2>
+      <p>أضف الأعمال والهويات ومنتجات المتجر وحلقات «هذي عُمان». الحقول مطابقة تمامًا لما يظهر في صفحات الموقع.</p>
+      <div class="note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+        <span><b>ملاحظة:</b> يُحفظ المحتوى في هذا المتصفّح ويظهر فورًا في صفحات الموقع. لنشره لجميع الزوّار على الإنترنت يلزم خطوة استضافة لاحقة — اطلبها منّا عند الجاهزية.</span>
+      </div>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-tab="works" type="button">الأعمال</button>
+      <button class="tab" data-tab="identities" type="button">الهويات والشعارات</button>
+      <button class="tab" data-tab="products" type="button">منتجات المتجر</button>
+      <button class="tab" data-tab="episodes" type="button">حلقات هذي عُمان</button>
+    </div>
+
+    <!-- ===== WORKS (case study) ===== -->
+    <section class="panel show" id="panel-works">
+      <div class="card">
+        <h3>إضافة عمل جديد</h3>
+        <p class="sub">يظهر في قسم «الأعمال» بالصفحة الرئيسية، وعند الضغط عليه تُفتح صفحة تفاصيل العمل بنفس تنسيق الموقع.</p>
+
+        <div class="group-title">المعلومات الأساسية</div>
+        <div class="form-grid">
+          <div class="field"><label>عنوان العمل (عربي)</label><input id="w_name_ar" type="text" placeholder="مثال: هوية معرض مسقط" /></div>
+          <div class="field"><label>عنوان العمل (إنجليزي)</label><input id="w_name_en" type="text" dir="ltr" placeholder="e.g. Muscat Expo identity" /></div>
+          <div class="field"><label>التصنيف / العميل المعروض (عربي)</label><input id="w_cat_ar" type="text" placeholder="مثال: وزارة الثقافة والرياضة والشباب" /></div>
+          <div class="field"><label>التصنيف / العميل المعروض (إنجليزي)</label><input id="w_cat_en" type="text" dir="ltr" placeholder="e.g. Ministry of Culture" /></div>
+          <div class="field full"><label>نبذة قصيرة (عربي)</label><textarea id="w_lead_ar" placeholder="جملة أو جملتان تصف العمل…"></textarea></div>
+          <div class="field full"><label>نبذة قصيرة (إنجليزي)</label><textarea id="w_lead_en" dir="ltr" placeholder="A line or two describing the work…"></textarea></div>
+        </div>
+
+        <div class="group-title">تفاصيل العمل</div>
+        <div class="form-grid">
+          <div class="field"><label>العميل (عربي)</label><input id="w_client_ar" type="text" placeholder="مثال: وكالة مَدّ" /></div>
+          <div class="field"><label>العميل (إنجليزي)</label><input id="w_client_en" type="text" dir="ltr" placeholder="e.g. Madd Agency" /></div>
+          <div class="field"><label>الدور (عربي)</label><input id="w_role_ar" type="text" placeholder="مثال: هوية بصرية" /></div>
+          <div class="field"><label>الدور (إنجليزي)</label><input id="w_role_en" type="text" dir="ltr" placeholder="e.g. Visual identity" /></div>
+          <div class="field"><label>المدّة (عربي)</label><input id="w_dur_ar" type="text" placeholder="مثال: ٦ أسابيع" /></div>
+          <div class="field"><label>المدّة (إنجليزي)</label><input id="w_dur_en" type="text" dir="ltr" placeholder="e.g. 6 weeks" /></div>
+          <div class="field"><label>النطاق (عربي)</label><input id="w_scope_ar" type="text" placeholder="مثال: هوية · مطبوعات" /></div>
+          <div class="field"><label>النطاق (إنجليزي)</label><input id="w_scope_en" type="text" dir="ltr" placeholder="e.g. Identity · Print" /></div>
+        </div>
+
+        <div class="group-title">نظرة عامة <span class="hint">(اختياري — تظهر في صفحة التفاصيل)</span></div>
+        <div class="form-grid">
+          <div class="field full"><label>نظرة عامة (عربي)</label><textarea id="w_ov_ar" placeholder="فقرة عن الموجز والسياق والقرارات…"></textarea></div>
+          <div class="field full"><label>نظرة عامة (إنجليزي)</label><textarea id="w_ov_en" dir="ltr" placeholder="A paragraph about the brief and context…"></textarea></div>
+        </div>
+
+        <div class="group-title">صورة العمل</div>
+        <div class="field full">
+          <div class="drop" id="w_drop" data-target="w_img">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            <span>اسحب صورة الغلاف هنا أو اضغط للاختيار</span>
+          </div>
+          <input id="w_img" type="file" accept="image/*" hidden />
+        </div>
+
+        <div class="group-title">صور تفاصيل العمل <span class="hint">(اختياري — تظهر داخل صفحة العمل · حتى ٦ صور)</span></div>
+        <div class="field full">
+          <div class="drop small" id="w_gdrop">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            <span>اسحب حتى ٦ صور تفاصيل هنا أو اضغط لاختيارها</span>
+          </div>
+          <input id="w_gallery" type="file" accept="image/*" multiple hidden />
+          <div class="gallery-strip" id="w_gstrip"></div>
+        </div>
+
+        <div class="form-foot">
+          <button class="btn btn-accent" id="w_save" type="button">حفظ العمل</button>
+          <span class="save-msg" id="w_msg">تم الحفظ ✓</span>
+        </div>
+      </div>
+      <div class="list-title">الأعمال المضافة</div>
+      <div id="w_list"></div>
+      <div class="list-title" style="margin-top:26px;">سجل جميع أعمال الموقع</div>
+      <div id="w_registry"></div>
+    </section>
+
+    <!-- ===== IDENTITIES (case study) ===== -->
+    <section class="panel" id="panel-identities">
+      <div class="card">
+        <h3>إضافة هوية / شعار</h3>
+        <p class="sub">يظهر في قسم «الهويات» بالصفحة الرئيسية، وعند الضغط عليه تُفتح صفحة تفاصيل بنفس تنسيق الموقع.</p>
+
+        <div class="group-title">المعلومات الأساسية</div>
+        <div class="form-grid">
+          <div class="field"><label>اسم الهوية (عربي)</label><input id="i_name_ar" type="text" placeholder="مثال: شعار مقهى رواق" /></div>
+          <div class="field"><label>اسم الهوية (إنجليزي)</label><input id="i_name_en" type="text" dir="ltr" placeholder="e.g. Riwaq Café" /></div>
+          <div class="field"><label>التصنيف المعروض (عربي)</label><input id="i_cat_ar" type="text" placeholder="مثال: هوية بصرية" /></div>
+          <div class="field"><label>التصنيف المعروض (إنجليزي)</label><input id="i_cat_en" type="text" dir="ltr" placeholder="e.g. Brand identity" /></div>
+          <div class="field full"><label>نبذة قصيرة (عربي)</label><textarea id="i_lead_ar" placeholder="جملة أو جملتان تصف الهوية…"></textarea></div>
+          <div class="field full"><label>نبذة قصيرة (إنجليزي)</label><textarea id="i_lead_en" dir="ltr" placeholder="A line or two describing the identity…"></textarea></div>
+        </div>
+
+        <div class="group-title">تفاصيل الهوية</div>
+        <div class="form-grid">
+          <div class="field"><label>العميل (عربي)</label><input id="i_client_ar" type="text" placeholder="مثال: مقهى رواق" /></div>
+          <div class="field"><label>العميل (إنجليزي)</label><input id="i_client_en" type="text" dir="ltr" placeholder="e.g. Riwaq Café" /></div>
+          <div class="field"><label>الدور (عربي)</label><input id="i_role_ar" type="text" placeholder="مثال: هوية بصرية" /></div>
+          <div class="field"><label>الدور (إنجليزي)</label><input id="i_role_en" type="text" dir="ltr" placeholder="e.g. Brand identity" /></div>
+          <div class="field"><label>المدّة (عربي)</label><input id="i_dur_ar" type="text" placeholder="مثال: ٤ أسابيع" /></div>
+          <div class="field"><label>المدّة (إنجليزي)</label><input id="i_dur_en" type="text" dir="ltr" placeholder="e.g. 4 weeks" /></div>
+          <div class="field"><label>النطاق (عربي)</label><input id="i_scope_ar" type="text" placeholder="مثال: شعار · نظام" /></div>
+          <div class="field"><label>النطاق (إنجليزي)</label><input id="i_scope_en" type="text" dir="ltr" placeholder="e.g. Wordmark · System" /></div>
+        </div>
+
+        <div class="group-title">نظرة عامة <span class="hint">(اختياري — تظهر في صفحة التفاصيل)</span></div>
+        <div class="form-grid">
+          <div class="field full"><label>نظرة عامة (عربي)</label><textarea id="i_ov_ar" placeholder="فقرة عن الموجز والسياق…"></textarea></div>
+          <div class="field full"><label>نظرة عامة (إنجليزي)</label><textarea id="i_ov_en" dir="ltr" placeholder="A paragraph about the brief and context…"></textarea></div>
+        </div>
+
+        <div class="group-title">صورة الشعار / الهوية</div>
+        <div class="field full">
+          <div class="drop" id="i_drop" data-target="i_img">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            <span>اسحب صورة الشعار هنا أو اضغط للاختيار</span>
+          </div>
+          <input id="i_img" type="file" accept="image/*" hidden />
+        </div>
+
+        <div class="group-title">صور تفاصيل الهوية <span class="hint">(اختياري — تظهر داخل صفحة الهوية · حتى ٦ صور)</span></div>
+        <div class="field full">
+          <div class="drop small" id="i_gdrop">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            <span>اسحب حتى ٦ صور تفاصيل هنا أو اضغط لاختيارها</span>
+          </div>
+          <input id="i_gallery" type="file" accept="image/*" multiple hidden />
+          <div class="gallery-strip" id="i_gstrip"></div>
+        </div>
+
+        <div class="form-foot">
+          <button class="btn btn-accent" id="i_save" type="button">حفظ الهوية</button>
+          <span class="save-msg" id="i_msg">تم الحفظ ✓</span>
+        </div>
+      </div>
+      <div class="list-title">الهويات المضافة</div>
+      <div id="i_list"></div>
+      <div class="list-title" style="margin-top:26px;">سجل جميع هويات الموقع</div>
+      <div id="i_registry"></div>
+    </section>
+
+    <!-- ===== STORE PRODUCTS ===== -->
+    <section class="panel" id="panel-products">
+      <div class="card">
+        <h3>إضافة منتج للمتجر</h3>
+        <p class="sub">يظهر في صفحة «متجر مَدّ» بنفس بطاقة المنتج: الاسم، التصنيف، السعر، والشارة.</p>
+        <div class="form-grid">
+          <div class="field"><label>اسم المنتج (عربي)</label><input id="p_name_ar" type="text" placeholder="مثال: تيشيرت الشعار" /></div>
+          <div class="field"><label>اسم المنتج (إنجليزي)</label><input id="p_name_en" type="text" dir="ltr" placeholder="e.g. Logo Tee" /></div>
+          <div class="field">
+            <label>التصنيف</label>
+            <select id="p_cat">
+              <option value="apparel">ملابس</option>
+              <option value="accessories">إكسسوارات</option>
+              <option value="stationery">قرطاسية</option>
+            </select>
+          </div>
+          <div class="field"><label>السعر (ر.ع · OMR)</label><input id="p_price" type="number" min="0" step="0.5" inputmode="decimal" placeholder="مثال: 8" /></div>
+          <div class="field">
+            <label>الشارة</label>
+            <select id="p_tag">
+              <option value="">بدون</option>
+              <option value="new">جديد</option>
+              <option value="soon">قريبًا</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label>صورة المنتج</label>
+            <div class="drop" id="p_drop" data-target="p_img">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+              <span>اسحب صورة المنتج هنا أو اضغط للاختيار</span>
+            </div>
+            <input id="p_img" type="file" accept="image/*" hidden />
+          </div>
+        </div>
+        <div class="form-foot">
+          <button class="btn btn-accent" id="p_save" type="button">حفظ المنتج</button>
+          <span class="save-msg" id="p_msg">تم الحفظ ✓</span>
+        </div>
+      </div>
+      <div class="list-title">منتجات مضافة</div>
+      <div id="p_list"></div>
+    </section>
+
+    <!-- ===== EPISODES ===== -->
+    <section class="panel" id="panel-episodes">
+      <div class="card">
+        <h3>إضافة موسم جديد</h3>
+        <p class="sub">يظهر كتبويب موسم جديد في صفحة «هذي عُمان»، وتقدر تضيف له حلقات من الأسفل.</p>
+        <div class="form-grid">
+          <div class="field"><label>اسم الموسم (عربي)</label><input id="s_tar" type="text" placeholder="مثال: الموسم الثالث" /></div>
+          <div class="field"><label>اسم الموسم (إنجليزي)</label><input id="s_ten" type="text" dir="ltr" placeholder="e.g. Season Three" /></div>
+          <div class="field"><label>السنة (عربي)</label><input id="s_yar" type="text" placeholder="مثال: ٢٠٢٧" /></div>
+          <div class="field"><label>السنة (إنجليزي)</label><input id="s_yen" type="text" dir="ltr" placeholder="e.g. 2027" /></div>
+        </div>
+        <div class="form-foot">
+          <button class="btn btn-accent" id="s_save" type="button">حفظ الموسم</button>
+          <span class="save-msg" id="s_msg">تم الحفظ ✓</span>
+        </div>
+        <div class="list-title" style="margin-top:24px;">المواسم المضافة</div>
+        <div id="s_list"></div>
+      </div>
+
+      <div class="card">
+        <h3>إضافة حلقة جديدة</h3>
+        <p class="sub">تظهر ضمن الموسم المختار في صفحة «هذي عُمان». الصق رابط يوتيوب وسيُشغّل تلقائيًا.</p>
+        <div class="form-grid">
+          <div class="field"><label>الموسم</label><select id="e_season"></select></div>
+          <div class="field"><label>رابط يوتيوب</label><input id="e_yt" type="text" placeholder="https://youtu.be/…" dir="ltr" /></div>
+          <div class="field"><label>عنوان الحلقة (عربي)</label><input id="e_tar" type="text" placeholder="مثال: جبل أخضر" /></div>
+          <div class="field"><label>عنوان الحلقة (إنجليزي)</label><input id="e_ten" type="text" dir="ltr" placeholder="e.g. Jabal Akhdar" /></div>
+          <div class="field"><label>الموقع (عربي)</label><input id="e_lar" type="text" placeholder="مثال: الجبل الأخضر · الداخلية" /></div>
+          <div class="field"><label>الموقع (إنجليزي)</label><input id="e_len" type="text" dir="ltr" placeholder="e.g. Al Jabal Al Akhdar" /></div>
+          <div class="field"><label>التاريخ (عربي)</label><input id="e_dar" type="text" placeholder="مثال: ١٢ يناير" /></div>
+          <div class="field"><label>التاريخ (إنجليزي)</label><input id="e_den" type="text" dir="ltr" placeholder="e.g. Jan 12" /></div>
+          <div class="field full"><label>وصف مختصر (عربي)</label><textarea id="e_descar" placeholder="جملة أو جملتان عن الحلقة…"></textarea></div>
+          <div class="field full"><label>وصف مختصر (إنجليزي)</label><textarea id="e_descen" dir="ltr" placeholder="A line or two about the episode…"></textarea></div>
+        </div>
+        <div class="form-foot">
+          <button class="btn btn-accent" id="e_save" type="button">حفظ الحلقة</button>
+          <span class="save-msg" id="e_msg">تم الحفظ ✓</span>
+        </div>
+      </div>
+      <div class="list-title">الحلقات المضافة</div>
+      <div id="e_list"></div>
+    </section>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ====== CONFIG ====== */
+  var PASSCODE = '2266';                 // غيّر الرمز من هنا
+  var AUTH_KEY = 'madd:cms:auth';
+  var K_WORKS = 'madd:cms:works';
+  var K_IDS   = 'madd:cms:identities';
+  var K_PROD  = 'madd:cms:products';
+  var K_EPS   = 'madd:cms:episodes';
+  var K_SEASONS = 'madd:cms:seasons';
+  var BUILTIN_SEASONS = [
+    { value:'0', nameAr:'الموسم الأول ٢٠٢٥' },
+    { value:'1', nameAr:'الموسم الثاني ٢٠٢٦' }
+  ];
+
+  /* ====== helpers ====== */
+  function $(id){ return document.getElementById(id); }
+  function val(id){ var e=$(id); return e ? e.value.trim() : ''; }
+  function read(k){ try{ return JSON.parse(localStorage.getItem(k)||'[]')||[]; }catch(e){ return []; } }
+  function write(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ toast('تعذّر الحفظ — الذاكرة ممتلئة. احذف عناصر قديمة.'); return false; } }
+  function uid(p){ return (p||'c')+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+  var toastTimer;
+  function toast(msg){ var el=$('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(function(){ el.classList.remove('show'); },2200); }
+  function flash(id){ var m=$(id); m.classList.add('show'); setTimeout(function(){ m.classList.remove('show'); },1800); }
+  function esc(s){ return String(s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  /* downscale an image file → dataURL (keeps localStorage small) */
+  function fileToDataURL(file, maxDim, cb){
+    var reader=new FileReader();
+    reader.onload=function(){
+      var img=new Image();
+      img.onload=function(){
+        var w=img.width, h=img.height, scale=Math.min(1, maxDim/Math.max(w,h));
+        var cw=Math.round(w*scale), ch=Math.round(h*scale);
+        var cv=document.createElement('canvas'); cv.width=cw; cv.height=ch;
+        cv.getContext('2d').drawImage(img,0,0,cw,ch);
+        var isPng=/png/i.test(file.type);
+        cb(cv.toDataURL(isPng?'image/png':'image/jpeg', 0.85));
+      };
+      img.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /* ====== LOGIN ====== */
+  function showApp(){ $('gate').style.display='none'; $('app').classList.add('show'); renderAll(); }
+  function logout(){
+    try{ sessionStorage.removeItem(AUTH_KEY); sessionStorage.setItem(AUTH_KEY,''); }catch(e){}
+    // leave the dashboard entirely and return to the website
+    window.location.href = 'Portfolio.html';
+  }
+  function tryLogin(){
+    if($('codeInput').value.trim()===PASSCODE){
+      try{ sessionStorage.setItem(AUTH_KEY,'1'); }catch(e){}
+      showApp();
+    } else {
+      $('codeErr').textContent='رمز غير صحيح، حاول مرة أخرى.';
+      $('codeInput').value=''; $('codeInput').focus();
+    }
+  }
+  $('loginBtn').addEventListener('click', tryLogin);
+  $('codeInput').addEventListener('keydown', function(e){ if(e.key==='Enter') tryLogin(); });
+  $('logoutBtn').addEventListener('click', logout);
+  try{ if(sessionStorage.getItem(AUTH_KEY)==='1') showApp(); else $('codeInput').focus(); }catch(e){ $('codeInput').focus(); }
+
+  /* ====== TABS ====== */
+  $('tabs').addEventListener('click', function(e){
+    var b=e.target.closest('.tab'); if(!b) return;
+    document.querySelectorAll('.tab').forEach(function(x){ x.classList.toggle('active', x===b); });
+    document.querySelectorAll('.panel').forEach(function(p){ p.classList.toggle('show', p.id==='panel-'+b.dataset.tab); });
+  });
+
+  /* ====== IMAGE DROPZONES ====== */
+  var pending = {};
+  var dropDefault = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>';
+  function setupDrop(dropId, inputId, label, maxDim){
+    var drop=$(dropId), input=$(inputId);
+    function handle(file){
+      if(!file || !/^image\//.test(file.type)) return;
+      fileToDataURL(file, maxDim||1200, function(url){ pending[inputId]=url; drop.innerHTML='<img src="'+url+'" alt="" />'; });
+    }
+    drop._label=label;
+    drop.addEventListener('click', function(){ input.click(); });
+    input.addEventListener('change', function(){ if(input.files[0]) handle(input.files[0]); });
+    drop.addEventListener('dragover', function(e){ e.preventDefault(); drop.classList.add('over'); });
+    drop.addEventListener('dragleave', function(){ drop.classList.remove('over'); });
+    drop.addEventListener('drop', function(e){ e.preventDefault(); drop.classList.remove('over'); if(e.dataTransfer.files[0]) handle(e.dataTransfer.files[0]); });
+  }
+  function resetDrop(dropId, inputId){ pending[inputId]=null; $(dropId).innerHTML=dropDefault+'<span>'+($(dropId)._label||'اسحب صورة هنا أو اضغط للاختيار')+'</span>'; }
+  setupDrop('w_drop','w_img','اسحب صورة الغلاف هنا أو اضغط للاختيار',1400);
+  setupDrop('i_drop','i_img','اسحب صورة الشعار هنا أو اضغط للاختيار',1400);
+  setupDrop('p_drop','p_img','اسحب صورة المنتج هنا أو اضغط للاختيار',1100);
+
+  /* multi-image gallery uploaders (works + identities detail images) */
+  var pendingGallery = { w:[], i:[] };
+  function renderStrip(px){
+    var strip=$(px+'_gstrip'); if(!strip) return;
+    strip.innerHTML = pendingGallery[px].map(function(url,idx){
+      return '<div class="gthumb"><img src="'+url+'" alt="" /><button type="button" data-gi="'+idx+'" aria-label="حذف">✕</button></div>';
+    }).join('');
+    strip.querySelectorAll('[data-gi]').forEach(function(b){ b.addEventListener('click', function(){ pendingGallery[px].splice(+b.dataset.gi,1); renderStrip(px); }); });
+  }
+  function setupGallery(px, maxDim){
+    var drop=$(px+'_gdrop'), input=$(px+'_gallery');
+    function addFiles(files){
+      Array.prototype.forEach.call(files, function(f){
+        if(!/^image\//.test(f.type)) return;
+        if(pendingGallery[px].length >= 6){ toast('الحد الأقصى ٦ صور تفاصيل.'); return; }
+        fileToDataURL(f, maxDim||1000, function(url){ if(pendingGallery[px].length < 6){ pendingGallery[px].push(url); renderStrip(px); } });
+      });
+    }
+    drop.addEventListener('click', function(){ input.click(); });
+    input.addEventListener('change', function(){ if(input.files.length) addFiles(input.files); input.value=''; });
+    drop.addEventListener('dragover', function(e){ e.preventDefault(); drop.classList.add('over'); });
+    drop.addEventListener('dragleave', function(){ drop.classList.remove('over'); });
+    drop.addEventListener('drop', function(e){ e.preventDefault(); drop.classList.remove('over'); if(e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
+  }
+  setupGallery('w'); setupGallery('i');
+
+  /* ====== SAVE: case items (works + identities, same structure as case.html) ====== */
+  function saveCase(px, key, render){
+    var nameAr=val(px+'_name_ar'), nameEn=val(px+'_name_en');
+    if(!nameAr && !nameEn){ toast('أدخل العنوان على الأقل.'); return; }
+    if(!pending[px+'_img']){ toast('أضف صورة.'); return; }
+    var rec = {
+      id: uid(px),
+      nameAr:nameAr, nameEn:nameEn||nameAr,
+      catAr:val(px+'_cat_ar'), catEn:val(px+'_cat_en')||val(px+'_cat_ar'),
+      leadAr:val(px+'_lead_ar'), leadEn:val(px+'_lead_en')||val(px+'_lead_ar'),
+      clientAr:val(px+'_client_ar'), clientEn:val(px+'_client_en')||val(px+'_client_ar'),
+      roleAr:val(px+'_role_ar'), roleEn:val(px+'_role_en')||val(px+'_role_ar'),
+      durAr:val(px+'_dur_ar'), durEn:val(px+'_dur_en')||val(px+'_dur_ar'),
+      scopeAr:val(px+'_scope_ar'), scopeEn:val(px+'_scope_en')||val(px+'_scope_ar'),
+      ovAr:val(px+'_ov_ar'), ovEn:val(px+'_ov_en')||val(px+'_ov_ar'),
+      img: pending[px+'_img'],
+      gallery: (pendingGallery[px]||[]).slice()
+    };
+    rec.link = 'case.html?id='+rec.id;
+    var arr=read(key); arr.push(rec);
+    if(!write(key, arr)) return;
+    ['_name_ar','_name_en','_cat_ar','_cat_en','_lead_ar','_lead_en','_client_ar','_client_en','_role_ar','_role_en','_dur_ar','_dur_en','_scope_ar','_scope_en','_ov_ar','_ov_en']
+      .forEach(function(s){ if($(px+s)) $(px+s).value=''; });
+    resetDrop(px+'_drop', px+'_img');
+    if(pendingGallery[px]){ pendingGallery[px]=[]; renderStrip(px); }
+    flash(px+'_msg'); render(); toast('تم الحفظ ✓');
+  }
+  $('w_save').addEventListener('click', function(){ saveCase('w', K_WORKS, renderWorks); });
+  $('i_save').addEventListener('click', function(){ saveCase('i', K_IDS, renderIds); });
+
+  /* ====== SAVE: store product ====== */
+  $('p_save').addEventListener('click', function(){
+    var ar=val('p_name_ar'), en=val('p_name_en');
+    if(!ar && !en){ toast('أدخل اسم المنتج على الأقل.'); return; }
+    if(!pending.p_img){ toast('أضف صورة المنتج.'); return; }
+    var price=parseFloat($('p_price').value); if(isNaN(price)) price=0;
+    var arr=read(K_PROD);
+    arr.push({ id:uid('p'), nameAr:ar, nameEn:en||ar, cat:$('p_cat').value, price:price, tag:$('p_tag').value, img:pending.p_img });
+    if(!write(K_PROD, arr)) return;
+    ['p_name_ar','p_name_en','p_price'].forEach(function(id){ $(id).value=''; });
+    $('p_tag').value=''; resetDrop('p_drop','p_img'); flash('p_msg'); renderProducts(); toast('أُضيف المنتج ✓');
+  });
+
+  /* ====== SAVE: season ====== */
+  $('s_save').addEventListener('click', function(){
+    var tar=val('s_tar'), ten=val('s_ten');
+    if(!tar && !ten){ toast('أدخل اسم الموسم.'); return; }
+    var arr=read(K_SEASONS);
+    arr.push({ id:uid('s'), titleAr:tar||ten, titleEn:ten||tar, yearAr:val('s_yar'), yearEn:val('s_yen')||val('s_yar') });
+    if(!write(K_SEASONS, arr)) return;
+    ['s_tar','s_ten','s_yar','s_yen'].forEach(function(id){ $(id).value=''; });
+    flash('s_msg'); renderSeasons(); refreshSeasonOptions(); toast('أُضيف الموسم ✓');
+  });
+
+  /* combined season list (built-in + CMS) for dropdown + labels */
+  function allSeasons(){
+    var list = BUILTIN_SEASONS.map(function(s){ return { value:s.value, label:s.nameAr }; });
+    read(K_SEASONS).forEach(function(s){ list.push({ value:s.id, label:(s.titleAr||s.titleEn)+(s.yearAr?' '+s.yearAr:'') }); });
+    return list;
+  }
+  function seasonLabel(ref){
+    var m = allSeasons().filter(function(s){ return s.value===String(ref); })[0];
+    return m ? m.label : '';
+  }
+  function refreshSeasonOptions(){
+    var sel=$('e_season'); if(!sel) return;
+    var cur=sel.value;
+    sel.innerHTML = allSeasons().map(function(s){ return '<option value="'+s.value+'">'+esc(s.label)+'</option>'; }).join('');
+    if(cur) sel.value=cur;
+  }
+
+  /* ====== SAVE: episode ====== */
+  $('e_save').addEventListener('click', function(){
+    var tar=val('e_tar'), ten=val('e_ten'), yt=val('e_yt');
+    if(!tar && !ten){ toast('أدخل عنوان الحلقة.'); return; }
+    if(!yt){ toast('الصق رابط يوتيوب للحلقة.'); return; }
+    var arr=read(K_EPS);
+    arr.push({ id:uid('e'), season:$('e_season').value, yt:yt,
+      titleAr:tar, titleEn:ten||tar, locAr:val('e_lar'), locEn:val('e_len')||val('e_lar'),
+      dateAr:val('e_dar'), dateEn:val('e_den')||val('e_dar'),
+      descAr:val('e_descar'), descEn:val('e_descen')||val('e_descar') });
+    if(!write(K_EPS, arr)) return;
+    ['e_tar','e_ten','e_lar','e_len','e_dar','e_den','e_yt','e_descar','e_descen'].forEach(function(id){ $(id).value=''; });
+    flash('e_msg'); renderEps(); toast('أُضيفت الحلقة ✓');
+  });
+
+  /* ====== RENDER LISTS ====== */
+  function delFrom(key, id, after){ write(key, read(key).filter(function(x){ return x.id!==id; })); after(); toast('تم الحذف'); }
+  var delSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg>';
+
+  function renderCaseList(key, listId, emptyMsg, contain){
+    var arr=read(key), box=$(listId);
+    if(!arr.length){ box.innerHTML='<div class="empty">'+emptyMsg+'</div>'; return; }
+    box.innerHTML='<div class="items">'+arr.map(function(it){
+      return '<div class="item"><div class="item-thumb'+(contain?' contain':'')+'"><img src="'+it.img+'" alt="" /></div>'+
+        '<div class="item-main"><p class="item-name">'+esc(it.nameAr||it.nameEn)+'</p><p class="item-meta">'+esc(it.catAr||it.catEn||'')+'</p></div>'+
+        '<button class="item-del" data-del="'+it.id+'" title="حذف">'+delSvg+'</button></div>';
+    }).join('')+'</div>';
+    box.querySelectorAll('[data-del]').forEach(function(b){ b.addEventListener('click', function(){ delFrom(key, b.dataset.del, function(){ renderCaseList(key, listId, emptyMsg, contain); }); }); });
+  }
+  function renderWorks(){ renderCaseList(K_WORKS, 'w_list', 'لا توجد أعمال مضافة بعد.', false); renderRegistry('w'); }
+  function renderIds(){ renderCaseList(K_IDS, 'i_list', 'لا توجد هويات مضافة بعد.', true); renderRegistry('i'); }
+
+  /* ====== FULL SITE REGISTRY (built-in items on the site + CMS-added) ====== */
+  var BUILTIN_WORKS = [
+    { id:'PROJ-01', nameAr:'مسرعة الشركات الناشئة العمانية', catAr:'ريادة', img:'assets/cases/accelerator/cover.jpg' },
+    { id:'COFFEE315', nameAr:'حملة تسويقية', catAr:'كوفي ٣١٥', img:'assets/cases/coffee315/cover.jpg' },
+    { id:'NIZWA', nameAr:'على درب البوسعيد', catAr:'بنك نزوى', img:'assets/cases/busaid/logo.png' },
+    { id:'TATHMEER', nameAr:'في بيتنا إحسان', catAr:'شركة تثمير', img:'assets/cases/tathmeer/cover.jpg' },
+    { id:'PROJ-05', nameAr:'معك', catAr:'طلة', img:'assets/cases/maaq/cover.jpg' }
+  ];
+  var BUILTIN_IDS = [
+    { id:'ID-01', nameAr:'عبدالله البلوشي', catAr:'هوية شخصية', img:'assets/cases/balushi/tile.jpg' },
+    { id:'SMASH', nameAr:'SMASH Padel Club', catAr:'هوية بصرية', img:'assets/cases/smash/tile.jpg' },
+    { id:'SIDRA', nameAr:'منصة سدرة', catAr:'هوية بصرية', img:'assets/cases/sidra/tile.jpg' },
+    { id:'PROJ-02', nameAr:'برمجان', catAr:'هوية بصرية', img:'assets/cases/barmajan/tile.jpg' },
+    { id:'ID-04', nameAr:'أيام مسقط للتحكيم', catAr:'هوية فعالية', img:'assets/cases/arbitration/tile.jpg' },
+    { id:'SKYPARK', nameAr:'SKYPARK', catAr:'هوية بصرية', img:'assets/cases/skypark/tile.jpg' },
+    { id:'PADEL', nameAr:'Padel Arena', catAr:'هوية بصرية', img:'assets/cases/padel/tile.jpg' },
+    { id:'ID-02', nameAr:'Orki', catAr:'هوية بصرية', img:'assets/cases/orki/tile.jpg' },
+    { id:'ID315', nameAr:'٣١٥', catAr:'هوية بصرية', img:'assets/cases/id315/tile.jpg' },
+    { id:'SHIRAA', nameAr:'شراع', catAr:'هوية بصرية', img:'assets/cases/shiraa/tile.jpg' }
+  ];
+  var openSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>';
+  function renderRegistry(px){
+    var box=$(px+'_registry'); if(!box) return;
+    var builtin=(px==='w'?BUILTIN_WORKS:BUILTIN_IDS);
+    var added=read(px==='w'?K_WORKS:K_IDS).map(function(it){ return {id:it.id,nameAr:it.nameAr,nameEn:it.nameEn,catAr:it.catAr,catEn:it.catEn,img:it.img,_cms:true}; });
+    var all=builtin.concat(added);
+    var contain=(px==='i');
+    box.innerHTML='<div class="items">'+all.map(function(it){
+      var badge=it._cms?'<span class="reg-badge added">مضاف</span>':'<span class="reg-badge builtin">مثبّت</span>';
+      return '<div class="item readonly"><div class="item-thumb'+(contain?' contain':'')+'"><img src="'+it.img+'" alt="" /></div>'+
+        '<div class="item-main"><p class="item-name">'+esc(it.nameAr||it.nameEn||it.id)+badge+'</p>'+
+        '<p class="item-meta">'+esc(it.catAr||it.catEn||'')+'</p></div>'+
+        '<a class="item-open" href="case.html?id='+encodeURIComponent(it.id)+'" target="_blank" rel="noopener" title="فتح الصفحة">'+openSvg+'</a></div>';
+    }).join('')+'</div>'+
+    '<p style="font-size:12px;color:var(--muted);margin-top:12px;">الإجمالي: '+all.length+' \u00b7 مثبّت: '+builtin.length+' \u00b7 مضاف: '+added.length+'</p>';
+  }
+
+  function renderProducts(){
+    var arr=read(K_PROD), box=$('p_list');
+    if(!arr.length){ box.innerHTML='<div class="empty">لا توجد منتجات مضافة بعد.</div>'; return; }
+    var catName={apparel:'ملابس',accessories:'إكسسوارات',stationery:'قرطاسية'};
+    var tagName={'new':'جديد','soon':'قريبًا','':''};
+    box.innerHTML='<div class="items">'+arr.map(function(it){
+      var meta=(catName[it.cat]||'')+' · '+'<span class="pricetag">'+ (it.price%1===0?it.price:it.price.toFixed(1)) +' ر.ع</span>'+(it.tag&&tagName[it.tag]?' · '+tagName[it.tag]:'');
+      return '<div class="item"><div class="item-thumb"><img src="'+it.img+'" alt="" /></div>'+
+        '<div class="item-main"><p class="item-name">'+esc(it.nameAr||it.nameEn)+'</p><p class="item-meta">'+meta+'</p></div>'+
+        '<button class="item-del" data-del="'+it.id+'" title="حذف">'+delSvg+'</button></div>';
+    }).join('')+'</div>';
+    box.querySelectorAll('[data-del]').forEach(function(b){ b.addEventListener('click', function(){ delFrom(K_PROD, b.dataset.del, renderProducts); }); });
+  }
+
+  function renderSeasons(){
+    var arr=read(K_SEASONS), box=$('s_list');
+    if(!arr.length){ box.innerHTML='<div class="empty">لا توجد مواسم مضافة — الموسمان الأول والثاني جاهزان.</div>'; return; }
+    box.innerHTML='<div class="items">'+arr.map(function(it){
+      var n=read(K_EPS).filter(function(e){ return e.season===it.id; }).length;
+      return '<div class="item"><div class="item-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5"/></svg></div>'+
+        '<div class="item-main"><p class="item-name">'+esc(it.titleAr||it.titleEn)+(it.yearAr?' · '+esc(it.yearAr):'')+'</p><p class="item-meta">'+n+' حلقة</p></div>'+
+        '<button class="item-del" data-del="'+it.id+'" title="حذف">'+delSvg+'</button></div>';
+    }).join('')+'</div>';
+    box.querySelectorAll('[data-del]').forEach(function(b){ b.addEventListener('click', function(){
+      var sid=b.dataset.del;
+      var eps=read(K_EPS).filter(function(e){ return e.season===sid; });
+      if(eps.length && !confirm('سيُحذف الموسم و '+eps.length+' حلقة مرتبطة به. متابعة؟')) return;
+      write(K_SEASONS, read(K_SEASONS).filter(function(s){ return s.id!==sid; }));
+      write(K_EPS, read(K_EPS).filter(function(e){ return e.season!==sid; }));
+      renderSeasons(); refreshSeasonOptions(); renderEps(); toast('تم الحذف');
+    }); });
+  }
+
+  function renderEps(){
+    var arr=read(K_EPS), box=$('e_list');
+    if(!arr.length){ box.innerHTML='<div class="empty">لا توجد حلقات مضافة بعد.</div>'; return; }
+    box.innerHTML='<div class="items">'+arr.map(function(it){
+      return '<div class="item"><div class="item-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg></div>'+
+        '<div class="item-main"><p class="item-name">'+esc(it.titleAr||it.titleEn)+'</p><p class="item-meta">'+esc(seasonLabel(it.season))+(it.locAr?' · '+esc(it.locAr):'')+'</p></div>'+
+        '<button class="item-del" data-del="'+it.id+'" title="حذف">'+delSvg+'</button></div>';
+    }).join('')+'</div>';
+    box.querySelectorAll('[data-del]').forEach(function(b){ b.addEventListener('click', function(){ delFrom(K_EPS, b.dataset.del, renderEps); }); });
+  }
+
+  function renderAll(){ renderWorks(); renderIds(); renderProducts(); renderSeasons(); refreshSeasonOptions(); renderEps(); }
+})();
+</script>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#0A0A0A"/><g transform="translate(50,50)" fill="none" stroke="#DD6E2B" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><rect x="-22" y="-16" width="44" height="32" rx="4"/><path d="M-22 -4h44M-10 -16v-6M10 -16v-6"/></g></svg>
+</template>
+
+</body>
+</html>

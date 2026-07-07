@@ -1,0 +1,1030 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Madd · بريف الموقع للعميل</title>
+<link rel="stylesheet" href="colors_and_type.css" />
+<style>
+  :root {
+    --ink: #0A0A0A;
+    --ink-2: #3F3F46;
+    --muted: #71717A;
+    --line: #E4E4E7;
+    --soft: #F4F4F5;
+    --accent: #0A0A0A;
+    --ok: #16794B;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif;
+    color: var(--ink);
+    background: #ECECEC;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.55;
+  }
+
+  /* ---------- page (A4) ---------- */
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 24px auto;
+    background: #fff;
+    padding: 22mm 18mm 20mm;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+    page-break-after: always;
+    position: relative;
+  }
+  .page:last-of-type { page-break-after: auto; }
+
+  /* ---------- typography ---------- */
+  h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+  h1 { font-size: 40px; line-height: 1.1; letter-spacing: -0.025em; font-weight: 700; }
+  h2 { font-size: 22px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 15px; font-weight: 600; }
+  h4 { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase; }
+  p  { margin: 0 0 10px; color: var(--ink-2); font-size: 13.5px; }
+  ul { margin: 6px 0 0; padding-inline-start: 18px; color: var(--ink-2); font-size: 13.5px; }
+  ul li { margin: 4px 0; }
+  code, .mono {
+    font-family: 'Inter', ui-monospace, monospace;
+    font-size: 12px;
+    background: var(--soft);
+    padding: 2px 7px;
+    border-radius: 6px;
+    color: var(--ink);
+    letter-spacing: 0;
+    direction: ltr;
+    display: inline-block;
+  }
+
+  /* ---------- cover / page 1 ---------- */
+  .cover-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 36px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .brand img { width: 34px; height: 34px; }
+  .meta-block {
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    direction: ltr;
+  }
+  .cover-hero {
+    margin: 40px 0 28px;
+  }
+  .cover-hero .kicker {
+    display: inline-block;
+    background: var(--ink);
+    color: #fff;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 22px;
+    font-family: 'Inter', sans-serif;
+  }
+  .cover-hero h1 { font-size: 52px; line-height: 1.05; }
+  .cover-hero .lead {
+    font-size: 16px;
+    color: var(--ink-2);
+    margin-top: 18px;
+    max-width: 520px;
+    line-height: 1.7;
+  }
+
+  /* checklist on cover */
+  .checklist {
+    margin-top: 36px;
+    border-top: 1px solid var(--line);
+    padding-top: 28px;
+  }
+  .checklist h4 { margin-bottom: 14px; }
+  .check-row {
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .check-row:last-child { border-bottom: 0; }
+  .check-row .num {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    direction: ltr;
+  }
+  .check-row .ttl { font-weight: 600; color: var(--ink); }
+  .check-row .count {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--soft);
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+
+  /* footer line */
+  .page-footer {
+    position: absolute;
+    bottom: 14mm; right: 18mm; left: 18mm;
+    display: flex;
+    justify-content: space-between;
+    font-size: 10.5px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-top: 1px solid var(--line);
+    padding-top: 8px;
+    font-family: 'Inter', sans-serif;
+    direction: ltr;
+  }
+
+  /* ---------- section pages ---------- */
+  .section-head {
+    margin-bottom: 24px;
+  }
+  .section-head .num {
+    display: inline-block;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.22em;
+    margin-bottom: 8px;
+    direction: ltr;
+  }
+  .section-head h2 {
+    font-size: 28px;
+    border: 0;
+    padding: 0;
+    margin: 0 0 6px;
+  }
+  .section-head .desc {
+    color: var(--muted);
+    font-size: 13.5px;
+    max-width: 560px;
+  }
+
+  /* spec card grid */
+  .asset-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .asset {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 16px 14px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .asset.full { grid-column: 1 / -1; }
+  .asset-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .asset-id {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: #fff;
+    background: var(--ink);
+    padding: 3px 9px;
+    border-radius: 6px;
+    letter-spacing: 0.06em;
+    direction: ltr;
+  }
+  .asset-title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .asset-specs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 2px;
+  }
+  .chip {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    background: var(--soft);
+    color: var(--ink-2);
+    padding: 4px 9px;
+    border-radius: 999px;
+    direction: ltr;
+  }
+  .chip.ratio { background: #0A0A0A; color: #fff; }
+  .chip.dim { background: #fff; border: 1px solid var(--line); }
+  .asset .note {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .asset .preview {
+    background: var(--soft);
+    border-radius: 6px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    margin-top: 6px;
+    direction: ltr;
+  }
+  .asset .preview.r4-3 { aspect-ratio: 4 / 3; }
+  .asset .preview.r16-9 { aspect-ratio: 16 / 9; }
+  .asset .preview.r3-4 { aspect-ratio: 3 / 4; }
+  .asset .preview.r1-1 { aspect-ratio: 1 / 1; }
+  .asset .preview.r21-9 { aspect-ratio: 21 / 9; }
+
+  /* content field block */
+  .field-list {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .field {
+    display: grid;
+    grid-template-columns: 180px 1fr 80px;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    gap: 14px;
+    font-size: 13px;
+  }
+  .field:last-child { border-bottom: 0; }
+  .field .lbl { font-weight: 600; color: var(--ink); }
+  .field .hint { color: var(--muted); font-size: 12.5px; }
+  .field .max {
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+    direction: ltr;
+  }
+
+  /* callout */
+  .callout {
+    background: var(--ink);
+    color: #fff;
+    border-radius: 12px;
+    padding: 22px 22px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 16px;
+    align-items: start;
+    margin: 20px 0;
+  }
+  .callout .ico {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+  }
+  .callout h3 { color: #fff; margin: 0 0 6px; font-size: 16px; }
+  .callout p { color: rgba(255,255,255,0.78); margin: 0; font-size: 13px; }
+  .callout .actions {
+    grid-column: 1 / -1;
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 6px;
+  }
+  .callout .actions a {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+    direction: ltr;
+  }
+
+  /* naming convention table */
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+    font-size: 13px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .table th, .table td {
+    padding: 11px 14px;
+    text-align: right;
+    border-bottom: 1px solid var(--line);
+  }
+  .table th {
+    background: var(--soft);
+    font-weight: 600;
+    font-size: 11.5px;
+    letter-spacing: 0.05em;
+    color: var(--ink);
+  }
+  .table tr:last-child td { border-bottom: 0; }
+  .table td.mono-cell {
+    font-family: 'Inter', ui-monospace, monospace;
+    direction: ltr;
+    text-align: left;
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+
+  /* print */
+  @media print {
+    html, body {
+      background: #fff !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    *, *::before, *::after {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
+    .toolbar, .print-hint { display: none !important; }
+    .page {
+      width: 210mm !important;
+      height: 297mm !important;
+      min-height: 297mm !important;
+      max-height: 297mm !important;
+      margin: 0 !important;
+      padding: 22mm 18mm 20mm !important;
+      box-shadow: none !important;
+      overflow: hidden !important;
+      page-break-after: always !important;
+      break-after: page !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+    .page:last-of-type {
+      page-break-after: auto !important;
+      break-after: auto !important;
+    }
+    .asset, .field, .check-row, .callout, .table tr {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+    @page { size: A4; margin: 0; }
+  }
+
+  /* on-screen toolbar */
+  .toolbar {
+    position: fixed;
+    top: 16px; right: 16px;
+    z-index: 99;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    padding: 6px;
+    display: flex;
+    gap: 4px;
+  }
+  .toolbar button {
+    background: var(--ink);
+    color: #fff;
+    border: 0;
+    font: inherit;
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+  }
+  .toolbar button:hover { background: #232328; }
+
+  /* print hint banner (screen only) */
+  .print-hint {
+    max-width: 210mm;
+    margin: 24px auto 0;
+    background: #FFFBEB;
+    border: 1px solid #FCD34D;
+    border-radius: 12px;
+    padding: 18px 22px;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #713F12;
+  }
+  .print-hint strong.t { color: #0A0A0A; display: block; margin-bottom: 8px; font-size: 14px; }
+  .print-hint ul { margin: 6px 0 8px; padding-inline-start: 22px; }
+  .print-hint li { font-size: 13px; }
+  .print-hint kbd {
+    font-family: 'Inter', monospace;
+    background: #fff;
+    border: 1px solid #FCD34D;
+    border-bottom-width: 2px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #0A0A0A;
+    direction: ltr;
+    display: inline-block;
+  }
+  .print-hint .note-line {
+    display: block;
+    margin-top: 6px;
+    font-size: 11.5px;
+    color: #92400E;
+  }
+</style>
+</head>
+<body>
+
+<div class="print-hint" dir="rtl">
+  <strong class="t">للحصول على PDF مطابق للتصميم 100٪:</strong>
+  اضغط <strong>تنزيل كـ PDF</strong> فوق، أو <kbd>Cmd / Ctrl + P</kbd>، ثم حدّد في نافذة الطباعة:
+  <ul>
+    <li>Destination: <strong>Save as PDF</strong></li>
+    <li>Paper size: <strong>A4</strong></li>
+    <li>Margins: <strong>None</strong> (بدون هوامش)</li>
+    <li>Scale: <strong>Default</strong> (100٪)</li>
+    <li>Background graphics / رسوميات الخلفية: <strong>✓ مفعّل</strong></li>
+  </ul>
+  <span class="note-line">خلفيات بيضاء في الـ PDF؟ فعّل Background graphics. حواف بيضاء؟ غيّر Margins إلى None.</span>
+</div>
+
+<div class="toolbar">
+  <button onclick="window.print()">⤓ تنزيل كـ PDF</button>
+</div>
+
+<!-- ============================================================
+     PAGE 1 — COVER + CHECKLIST
+============================================================ -->
+<section class="page">
+  <div class="cover-top">
+    <div class="brand">
+      <img src="assets/logo.svg" alt="Madd" />
+      <span>Madd Studio</span>
+    </div>
+    <div class="meta-block">
+      Website Brief<br/>
+      v1.0 · 2026
+    </div>
+  </div>
+
+  <div class="cover-hero">
+    <span class="kicker">Website · Brief</span>
+    <h1>بريف محتوى وصور<br/>الموقع الإلكتروني.</h1>
+    <p class="lead">
+      هذا الملف يشمل كل ما نحتاجه من صور ومحتوى لإطلاق موقعك.
+      اتبع المقاسات والأسماء المذكورة في كل قسم — يساعدنا هذا
+      على ترتيب الملفات وربطها مباشرة بمكانها داخل الموقع.
+    </p>
+  </div>
+
+  <div class="checklist">
+    <h4>محتويات الملف</h4>
+
+    <div class="check-row">
+      <div class="num">01</div>
+      <div class="ttl">عام · الهوية والصفحة الرئيسية</div>
+      <div class="count">3 أصول</div>
+    </div>
+    <div class="check-row">
+      <div class="num">02</div>
+      <div class="ttl">الأعمال — صور الغلاف في الشبكة</div>
+      <div class="count">6 صور</div>
+    </div>
+    <div class="check-row">
+      <div class="num">03</div>
+      <div class="ttl">الهويات — صور الغلاف في الشبكة</div>
+      <div class="count">6 صور</div>
+    </div>
+    <div class="check-row">
+      <div class="num">04</div>
+      <div class="ttl">التغطيات — صور الغلاف في الشبكة</div>
+      <div class="count">4 صور</div>
+    </div>
+    <div class="check-row">
+      <div class="num">05</div>
+      <div class="ttl">الخدمات — صور البطاقات</div>
+      <div class="count">3 صور</div>
+    </div>
+    <div class="check-row">
+      <div class="num">06</div>
+      <div class="ttl">صفحة تفاصيل العمل (Case page)</div>
+      <div class="count">7 صور + نص</div>
+    </div>
+    <div class="check-row">
+      <div class="num">07</div>
+      <div class="ttl">برنامج "هذي عُمان" — حلقات أسبوعية</div>
+      <div class="count">10 حلقات</div>
+    </div>
+    <div class="check-row">
+      <div class="num">08</div>
+      <div class="ttl">المحتوى النصي · بيانات التواصل · سوشل</div>
+      <div class="count">حقول</div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>Madd Studio · Website Brief</span>
+    <span>Page 01 / 08</span>
+  </div>
+</section>
+
+<!-- ============================================================
+     PAGE 2 — GENERAL + HERO
+============================================================ -->
+<section class="page">
+  <div class="section-head">
+    <span class="num">01 · GENERAL</span>
+    <h2>عام · الهوية والصفحة الرئيسية</h2>
+    <p class="desc">العناصر اللي تظهر في كل صفحة (اللوجو) وفي الصفحة الرئيسية (خلفية الهيرو).</p>
+  </div>
+
+  <div class="asset-grid">
+    <div class="asset full">
+      <div class="asset-head">
+        <span class="asset-title">شعار الاستوديو</span>
+        <span class="asset-id">LOGO</span>
+      </div>
+      <div class="asset-specs">
+        <span class="chip">SVG · مفضّل</span>
+        <span class="chip">PNG شفّاف · بديل</span>
+        <span class="chip dim">≥ 1024 × 1024 px</span>
+      </div>
+      <p class="note">نسختين: <strong>أبيض على شفّاف</strong> + <strong>أسود على شفّاف</strong>. بدون خلفية. ملف SVG نظيف (vectors, لا rasterized).</p>
+    </div>
+
+    <div class="asset full">
+      <div class="asset-head">
+        <span class="asset-title">صورة الخلفية في الهيرو (الصفحة الرئيسية)</span>
+        <span class="asset-id">HERO-BG</span>
+      </div>
+      <div class="asset-specs">
+        <span class="chip ratio">21:9 (عرضية)</span>
+        <span class="chip dim">2880 × 1234 px</span>
+        <span class="chip">JPG · جودة 85%</span>
+        <span class="chip">حجم أقل من 800KB</span>
+      </div>
+      <div class="preview r21-9">2880 × 1234 · 21:9</div>
+      <p class="note">صورة تعبّر عن طبيعة الاستوديو. ضوء طبيعي، تكوين هادئ. تجنّب الصور المزدحمة لأنها ستوضع تحت طبقة نص.</p>
+    </div>
+
+    <div class="asset">
+      <div class="asset-head">
+        <span class="asset-title">صورة OG (مشاركة سوشل)</span>
+        <span class="asset-id">OG-IMG</span>
+      </div>
+      <div class="asset-specs">
+        <span class="chip ratio">1.91 : 1</span>
+        <span class="chip dim">1200 × 630 px</span>
+        <span class="chip">PNG / JPG</span>
+      </div>
+      <p class="note">تظهر عند مشاركة رابط الموقع في واتساب / تويتر / لينكدإن.</p>
+    </div>
+
+    <div class="asset">
+      <div class="asset-head">
+        <span class="asset-title">Favicon</span>
+        <span class="asset-id">FAVICON</span>
+      </div>
+      <div class="asset-specs">
+        <span class="chip ratio">1:1</span>
+        <span class="chip dim">512 × 512 px</span>
+        <span class="chip">PNG شفّاف</span>
+      </div>
+      <p class="note">أيقونة التاب في المتصفح — مبسّط من اللوجو، يجب أن يقرأ في 32px.</p>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>Madd Studio · Website Brief</span>
+    <span>Page 02 / 08</span>
+  </div>
+</section>
+
+<!-- ============================================================
+     PAGE 3 — PROJECTS GRID
+============================================================ -->
+<section class="page">
+  <div class="section-head">
+    <span class="num">02 · PROJECTS</span>
+    <h2>الأعمال — صور الغلاف في الشبكة</h2>
+    <p class="desc">6 صور تظهر في شبكة "الأعمال" بالصفحة الرئيسية. صورة واحدة لكل عمل، تمثّل العمل كاملاً.</p>
+  </div>
+
+  <div class="callout">
+    <div class="ico">!</div>
+    <div>
+      <h3>مقاس موحّد لكل بطاقات الشبكة</h3>
+      <p>كل صور الأعمال والهويات والتغطيات لازم تكون <strong>4:3 · 1600 × 1200 px</strong> — JPG عالي الجودة، أقل من 600KB.</p>
+    </div>
+  </div>
+
+  <div class="asset-grid">
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">مسرعة الشركات الناشئة</span><span class="asset-id">PROJ-01</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">PROJ-01.jpg</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">برمجان</span><span class="asset-id">PROJ-02</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">PROJ-02.jpg</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">رحلة تضاريس</span><span class="asset-id">PROJ-03</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">PROJ-03.jpg</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">حنين</span><span class="asset-id">PROJ-04</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">PROJ-04.jpg</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">Tallah</span><span class="asset-id">PROJ-05</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">PROJ-05.jpg</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">رشيد جابر</span><span class="asset-id">PROJ-06</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">PROJ-06.jpg</div>
+    </div>
+  </div>
+
+  <h4 style="margin-top: 22px;">المحتوى المطلوب لكل عمل</h4>
+  <div class="field-list">
+    <div class="field"><span class="lbl">اسم العمل (عربي)</span><span class="hint">يظهر تحت الصورة</span><span class="max">حد أقصى 40 حرف</span></div>
+    <div class="field"><span class="lbl">اسم العمل (إنجليزي)</span><span class="hint">للنسخة الإنجليزية</span><span class="max">40 حرف</span></div>
+    <div class="field"><span class="lbl">التصنيف</span><span class="hint">هوية · موشن · ويب · حملة</span><span class="max">كلمة واحدة</span></div>
+    <div class="field"><span class="lbl">السنة</span><span class="hint">YYYY</span><span class="max">4 أرقام</span></div>
+  </div>
+
+  <div class="page-footer">
+    <span>Madd Studio · Website Brief</span>
+    <span>Page 03 / 08</span>
+  </div>
+</section>
+
+<!-- ============================================================
+     PAGE 4 — IDENTITIES GRID
+============================================================ -->
+<section class="page">
+  <div class="section-head">
+    <span class="num">03 · IDENTITIES</span>
+    <h2>الهويات — صور الغلاف في الشبكة</h2>
+    <p class="desc">6 صور تمثّل أبرز مشاريع الهوية البصرية. ركّز على لقطة "بطل" لكل هوية (تايبوغرافي، خلفية لونية، أو موك أب نظيف).</p>
+  </div>
+
+  <div class="asset-grid">
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">عبدالله البلوشي</span><span class="asset-id">ID-01</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">ID-01.jpg</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">ORKI</span><span class="asset-id">ID-02</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">ID-02.jpg</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">على درب البوسعيد</span><span class="asset-id">ID-03</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">ID-03.jpg</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">أيام مسقط للتحكيم</span><span class="asset-id">ID-04</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">ID-04.jpg</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">حنين</span><span class="asset-id">ID-05</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">ID-05.jpg</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">طلة</span><span class="asset-id">ID-06</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">ID-06.jpg</div>
+    </div>
+  </div>
+
+  <h4 style="margin-top: 22px;">— ملاحظات</h4>
+  <ul>
+    <li>إذا اللقطة الأفضل عمودية، أرسلها بمقاسها الأصلي وراح نقصّها للـ 4:3 (لكن النسبة 4:3 أنظف).</li>
+    <li>تجنّب الخلفيات البيضاء النقية تمامًا — اختر تدرّج رمادي خفيف أو لون يعكس الهوية.</li>
+    <li>الموك أب يكون نظيف، بدون يد أو عناصر مشتّتة.</li>
+  </ul>
+
+  <div class="page-footer">
+    <span>Madd Studio · Website Brief</span>
+    <span>Page 04 / 08</span>
+  </div>
+</section>
+
+<!-- ============================================================
+     PAGE 5 — COVERAGE
+============================================================ -->
+<section class="page">
+  <div class="section-head">
+    <span class="num">04 · COVERAGE</span>
+    <h2>التغطيات — صور الغلاف في الشبكة</h2>
+    <p class="desc">4 صور تمثّل أبرز التغطيات. لقطات حيّة من الحدث — أشخاص، حركة، إضاءة طبيعية.</p>
+  </div>
+
+  <div class="asset-grid">
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">Berlin Design Week</span><span class="asset-id">COV-01</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">COV-01.jpg</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">Founders Summit</span><span class="asset-id">COV-02</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">COV-02.jpg</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">Noir Gallery</span><span class="asset-id">COV-03</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">COV-03.jpg</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">Solène Launch</span><span class="asset-id">COV-04</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">COV-04.jpg</div>
+    </div>
+  </div>
+
+  <h4 style="margin-top: 22px;">المحتوى المطلوب لكل تغطية</h4>
+  <div class="field-list">
+    <div class="field"><span class="lbl">اسم الفعالية</span><span class="hint">عربي + إنجليزي</span><span class="max">40 حرف</span></div>
+    <div class="field"><span class="lbl">المكان</span><span class="hint">مسقط · أبوظبي · برلين ...</span><span class="max">20 حرف</span></div>
+    <div class="field"><span class="lbl">التاريخ</span><span class="hint">شهر · سنة</span><span class="max">—</span></div>
+  </div>
+
+  <h4 style="margin-top: 22px;">— قسم "الخدمات" (3 بطاقات)</h4>
+  <p>كل بطاقة فيها صورة تعبّر عن نوع الخدمة:</p>
+  <div class="asset-grid">
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">تغطية الفعاليات</span><span class="asset-id">SRV-01</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1200 × 900</span></div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">الهوية البصرية</span><span class="asset-id">SRV-02</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1200 × 900</span></div>
+    </div>
+    <div class="asset full">
+      <div class="asset-head"><span class="asset-title">السوشل ميديا</span><span class="asset-id">SRV-03</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1200 × 900</span></div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>Madd Studio · Website Brief</span>
+    <span>Page 05 / 08</span>
+  </div>
+</section>
+
+<!-- ============================================================
+     PAGE 6 — CASE PAGE
+============================================================ -->
+<section class="page">
+  <div class="section-head">
+    <span class="num">06 · CASE PAGE</span>
+    <h2>صفحة تفاصيل العمل</h2>
+    <p class="desc">كل عمل ينقر عليه يفتح صفحة كاملة. هذه الصفحة تحتاج صورة غلاف كبيرة + 6 صور معرض + النص الكامل للقصّة.</p>
+  </div>
+
+  <div class="asset-grid">
+    <div class="asset full">
+      <div class="asset-head"><span class="asset-title">صورة الغلاف (Hero)</span><span class="asset-id">HERO</span></div>
+      <div class="asset-specs">
+        <span class="chip ratio">16:9 (عرضية)</span>
+        <span class="chip dim">2400 × 1350 px</span>
+        <span class="chip">JPG · جودة 90%</span>
+      </div>
+      <div class="preview r16-9">HERO · 2400 × 1350 · 16:9</div>
+      <p class="note">أهم صورة في صفحة العمل — لقطة "بطل" تجمع روح المشروع.</p>
+    </div>
+
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">صورة عريضة 1</span><span class="asset-id">G-01</span></div>
+      <div class="asset-specs"><span class="chip ratio">16:9</span><span class="chip dim">2400 × 1350</span></div>
+      <div class="preview r16-9">G-01</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">تفصيل 1</span><span class="asset-id">G-02</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">G-02</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">تفصيل 2</span><span class="asset-id">G-03</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">G-03</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">عملية 1</span><span class="asset-id">G-04</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">G-04</div>
+    </div>
+    <div class="asset">
+      <div class="asset-head"><span class="asset-title">عملية 2</span><span class="asset-id">G-05</span></div>
+      <div class="asset-specs"><span class="chip ratio">4:3</span><span class="chip dim">1600 × 1200</span></div>
+      <div class="preview r4-3">G-05</div>
+    </div>
+    <div class="asset full">
+      <div class="asset-head"><span class="asset-title">صورة نهائية عريضة</span><span class="asset-id">G-06</span></div>
+      <div class="asset-specs"><span class="chip ratio">16:9</span><span class="chip dim">2400 × 1350</span></div>
+      <div class="preview r16-9">G-06 · final shot</div>
+    </div>
+  </div>
+
+  <h4 style="margin-top: 22px;">المحتوى النصي لصفحة العمل</h4>
+  <div class="field-list">
+    <div class="field"><span class="lbl">اسم المشروع</span><span class="hint">عربي + إنجليزي</span><span class="max">50 حرف</span></div>
+    <div class="field"><span class="lbl">العميل (Client)</span><span class="hint">اسم الشركة</span><span class="max">30 حرف</span></div>
+    <div class="field"><span class="lbl">السنة</span><span class="hint">YYYY</span><span class="max">—</span></div>
+    <div class="field"><span class="lbl">القطاع (Sector)</span><span class="hint">تقنية · ضيافة · ثقافة...</span><span class="max">20 حرف</span></div>
+    <div class="field"><span class="lbl">نطاق العمل (Scope)</span><span class="hint">قائمة بالخدمات المقدّمة</span><span class="max">حتى 4 بنود</span></div>
+    <div class="field"><span class="lbl">جملة افتتاحية</span><span class="hint">تشدّ القارئ في سطرين</span><span class="max">~140 حرف</span></div>
+    <div class="field"><span class="lbl">التحدّي (Challenge)</span><span class="hint">المشكلة التي جاء بها العميل</span><span class="max">~400 حرف</span></div>
+    <div class="field"><span class="lbl">المنهج (Approach)</span><span class="hint">كيف فكّرنا في الحل</span><span class="max">~500 حرف</span></div>
+    <div class="field"><span class="lbl">النتيجة (Outcome)</span><span class="hint">أرقام أو نتائج ملموسة</span><span class="max">~300 حرف</span></div>
+    <div class="field"><span class="lbl">اقتباس العميل</span><span class="hint">رأي العميل بعد المشروع (اختياري)</span><span class="max">~200 حرف</span></div>
+    <div class="field"><span class="lbl">صاحب الاقتباس</span><span class="hint">الاسم + المسمى الوظيفي</span><span class="max">—</span></div>
+  </div>
+
+  <div class="page-footer">
+    <span>Madd Studio · Website Brief</span>
+    <span>Page 06 / 08</span>
+  </div>
+</section>
+
+<!-- ============================================================
+     PAGE 7 — OMAN SERIES (weekly episodes)
+============================================================ -->
+<section class="page">
+  <div class="section-head">
+    <span class="num">07 · OMAN SERIES</span>
+    <h2>برنامج "هذي عُمان" — حلقات أسبوعية</h2>
+    <p class="desc">سلسلة من 10 حلقات (الموسم الأول)، تنزل كل جمعة. لكل حلقة صورة غلاف + فيديو + محتوى نصي.</p>
+  </div>
+
+  <div class="callout">
+    <div class="ico">!</div>
+    <div>
+      <h3>مقاس موحّد لكل صور الحلقات</h3>
+      <p>صور الغلاف (Thumbnails) <strong>16:10 · 1600 × 1000 px</strong> · JPG · أقل من 600KB. تلتقط أجواء الحلقة في لقطة واحدة.</p>
+    </div>
+  </div>
+
+  <h4 style="margin-top: 18px;">أولاً · صورة الحلقة المميّزة (فوق الصفحة)</h4>
+  <div class="asset-grid">
+    <div class="asset full">
+      <div class="asset-head">
+        <span class="asset-title">صورة الحلقة الأحدث (Hero البرنامج)</span>
+        <span class="asset-id">OMAN-EP-FEAT</span>
+      </div>
+      <div class="asset-specs">
+        <span class="chip ratio">16:9 (عريضة)</span>
+        <span class="chip dim">2400 × 1350 px</span>
+        <span class="chip">JPG · جودة 90%</span>
+      </div>
+      <p class="note">تظهر بحجم كبير في رأس الصفحة — تحت طبقة تدرّج سوداء. اختر لقطة بعمق ووضوح في الربع السفلي (حيث العنوان).</p>
+    </div>
+  </div>
+
+  <h4 style="margin-top: 22px;">ثانياً · صور جميع الحلقات (10 حلقات)</h4>
+  <table class="table">
+    <thead>
+      <tr><th>الحلقة</th><th>العنوان</th><th>تاريخ النزول</th><th>اسم الملف</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>OMAN-EP-01</td><td>مسقط · الميناء عند الفجر</td><td>12 أبريل</td><td class="mono-cell">oman-ep-01.jpg</td></tr>
+      <tr><td>OMAN-EP-02</td><td>نزوى · يدا الصائغ</td><td>19 أبريل</td><td class="mono-cell">oman-ep-02.jpg</td></tr>
+      <tr><td>OMAN-EP-03</td><td>مسندم · الخيران</td><td>26 أبريل</td><td class="mono-cell">oman-ep-03.jpg</td></tr>
+      <tr><td>OMAN-EP-04</td><td>بهلاء · القلعة والفخّارون</td><td>03 مايو</td><td class="mono-cell">oman-ep-04.jpg</td></tr>
+      <tr><td>OMAN-EP-05</td><td>رمال الوهيبة</td><td>10 مايو</td><td class="mono-cell">oman-ep-05.jpg</td></tr>
+      <tr><td>OMAN-EP-06</td><td>الجبل الأخضر · بساتين فوق الغيم</td><td>17 مايو</td><td class="mono-cell">oman-ep-06.jpg</td></tr>
+      <tr><td>OMAN-EP-07</td><td>صلالة · مدينة اللبان</td><td>24 مايو</td><td class="mono-cell">oman-ep-07.jpg</td></tr>
+      <tr><td>OMAN-EP-08</td><td>صور · المراكب اليدوية</td><td>31 مايو</td><td class="mono-cell">oman-ep-08.jpg</td></tr>
+      <tr><td>OMAN-EP-09</td><td>خصب · بين بحرين</td><td>07 يونيو</td><td class="mono-cell">oman-ep-09.jpg</td></tr>
+      <tr><td>OMAN-EP-10</td><td>الديار · ختام الموسم</td><td>14 يونيو</td><td class="mono-cell">oman-ep-10.jpg</td></tr>
+    </tbody>
+  </table>
+
+  <h4 style="margin-top: 22px;">ثالثاً · المحتوى المطلوب لكل حلقة</h4>
+  <div class="field-list">
+    <div class="field"><span class="lbl">عنوان الحلقة</span><span class="hint">عربي + إنجليزي</span><span class="max">~60 حرف</span></div>
+    <div class="field"><span class="lbl">وصف قصير</span><span class="hint">سطر واحد يظهر تحت العنوان في الشبكة</span><span class="max">~140 حرف</span></div>
+    <div class="field"><span class="lbl">الموقع / الولاية</span><span class="hint">مثل: مسقط · نزوى · ظفار</span><span class="max">—</span></div>
+    <div class="field"><span class="lbl">تاريخ النزول</span><span class="hint">يوم الجمعة</span><span class="max">DD MMM</span></div>
+    <div class="field"><span class="lbl">مدّة الحلقة</span><span class="hint">MM:SS</span><span class="max">—</span></div>
+    <div class="field"><span class="lbl">رابط الفيديو</span><span class="hint">YouTube / Vimeo (أو ملف MP4 مباشر)</span><span class="max">URL</span></div>
+  </div>
+
+  <h4 style="margin-top: 22px;">— ملاحظات</h4>
+  <ul>
+    <li>أرسل ملف فيديو أصلي لكل حلقة (MP4 / MOV) بجودة 1080p أو 4K — أو رابط YouTube/Vimeo غير معلن.</li>
+    <li>إذا توجد ترجمة (إنجليزية) للحلقة، أرفقها بصيغة <span class="mono">.srt</span> أو <span class="mono">.vtt</span>.</li>
+    <li>لتغيير وتيرة النزول (مثلاً كل أسبوعين)، أبلغنا في رسالة واحدة وسنعدّل تواريخ البرنامج.</li>
+  </ul>
+
+  <div class="page-footer">
+    <span>Madd Studio · Website Brief</span>
+    <span>Page 07 / 08</span>
+  </div>
+</section>
+
+<!-- ============================================================
+     PAGE 8 — TEXT CONTENT + DELIVERY
+============================================================ -->
+<section class="page">
+  <div class="section-head">
+    <span class="num">08 · CONTENT &amp; DELIVERY</span>
+    <h2>المحتوى النصي · بيانات التواصل · طريقة التسليم</h2>
+    <p class="desc">المحتوى الذي يظهر في الصفحة الرئيسية، التذييل، وصفحة "عنّا".</p>
+  </div>
+
+  <h4>نصوص الصفحة الرئيسية</h4>
+  <div class="field-list">
+    <div class="field"><span class="lbl">عنوان الهيرو</span><span class="hint">جملة قوية تختصر هوية الاستوديو</span><span class="max">~60 حرف</span></div>
+    <div class="field"><span class="lbl">جملة فرعية</span><span class="hint">سطر تحت العنوان</span><span class="max">~120 حرف</span></div>
+    <div class="field"><span class="lbl">عنوان قسم "عنّا"</span><span class="hint">—</span><span class="max">~50 حرف</span></div>
+    <div class="field"><span class="lbl">نص "عنّا"</span><span class="hint">من نحن، فلسفتنا، كيف نشتغل</span><span class="max">~600 حرف</span></div>
+  </div>
+
+  <h4 style="margin-top: 22px;">بيانات التواصل (CTA السفلي)</h4>
+  <div class="field-list">
+    <div class="field"><span class="lbl">الإيميل الرسمي</span><span class="hint">يظهر بشكل بارز</span><span class="max">—</span></div>
+    <div class="field"><span class="lbl">رقم الهاتف</span><span class="hint">بصيغة دولية +968 ...</span><span class="max">—</span></div>
+    <div class="field"><span class="lbl">العنوان (Maps)</span><span class="hint">عنوان دقيق + رابط Google Maps</span><span class="max">—</span></div>
+    <div class="field"><span class="lbl">إنستجرام</span><span class="hint">@username</span><span class="max">—</span></div>
+    <div class="field"><span class="lbl">بيهانس / دريببل</span><span class="hint">إن وجد</span><span class="max">—</span></div>
+    <div class="field"><span class="lbl">لينكدإن</span><span class="hint">رابط الصفحة</span><span class="max">—</span></div>
+    <div class="field"><span class="lbl">ساعات الدوام</span><span class="hint">الأحد – الخميس · 9ص – 5م</span><span class="max">—</span></div>
+  </div>
+
+  <h4 style="margin-top: 26px;">قواعد التسمية (مهمّ)</h4>
+  <table class="table">
+    <thead><tr><th>القسم</th><th>التسمية</th><th>مثال</th></tr></thead>
+    <tbody>
+      <tr><td>الأعمال</td><td class="mono-cell">proj-NN.jpg</td><td class="mono-cell">proj-03.jpg</td></tr>
+      <tr><td>الهويات</td><td class="mono-cell">id-NN.jpg</td><td class="mono-cell">id-05.jpg</td></tr>
+      <tr><td>التغطيات</td><td class="mono-cell">cov-NN.jpg</td><td class="mono-cell">cov-02.jpg</td></tr>
+      <tr><td>الخدمات</td><td class="mono-cell">srv-NN.jpg</td><td class="mono-cell">srv-01.jpg</td></tr>
+      <tr><td>صفحة العمل</td><td class="mono-cell">hero.jpg / g-NN.jpg</td><td class="mono-cell">g-04.jpg</td></tr>
+      <tr><td>برنامج عُمان</td><td class="mono-cell">oman-ep-NN.jpg + .mp4</td><td class="mono-cell">oman-ep-07.jpg</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="ico">↗</div>
+    <div>
+      <h3>طريقة التسليم</h3>
+      <p>أرسل الملفات كـ <strong>مجلد ZIP واحد</strong> منظّم في مجلدات فرعية: <span class="mono">/projects</span>, <span class="mono">/identities</span>, <span class="mono">/coverage</span>, <span class="mono">/services</span>, <span class="mono">/case</span>, <span class="mono">/oman-series</span> + ملف <span class="mono">content.docx</span> للنصوص. للفيديوهات، أرسل روابط YouTube/Vimeo أو ملفات MP4 عبر WeTransfer.</p>
+    </div>
+    <div class="actions">
+      <a href="mailto:hello@madd.studio">hello@madd.studio</a>
+      <a href="https://wetransfer.com" target="_blank" rel="noopener">WeTransfer</a>
+      <a href="https://drive.google.com" target="_blank" rel="noopener">Google Drive</a>
+    </div>
+  </div>
+
+  <p style="margin-top: 24px; font-size: 12.5px; color: var(--muted); text-align: center;">
+    شكراً لتعاونك. كل ما يصلنا الملف مكتمل، نبدأ التركيب خلال 3 أيام عمل.
+  </p>
+
+  <div class="page-footer">
+    <span>Madd Studio · Website Brief</span>
+    <span>Page 08 / 08</span>
+  </div>
+</section>
+
+</body>
+</html>
