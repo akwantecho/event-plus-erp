@@ -14,11 +14,24 @@
             <h1>{{ __('Exhibitions') }}</h1>
             <p class="subtitle">{{ $items->count() }} {{ __('Exhibitions') }}</p>
         </div>
-        <button class="btn-brand" id="addExhibitionBtn">
-            <i class="bi bi-plus-lg"></i>{{ __('Add Exhibition') }}
-        </button>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a href="{{ route('quotations.create', ['type' => 'exhibition']) }}" class="chip"><i class="bi bi-file-earmark-ruled"></i>{{ __('New Quotation') }}</a>
+            <button class="btn-brand" id="addExhibitionBtn">
+                <i class="bi bi-plus-lg"></i>{{ __('Add Exhibition') }}
+            </button>
+        </div>
     </div>
 
+    <div class="toolbar full-bleed sheet-aligned" style="padding-block:0;">
+        <div class="tabs">
+            <a href="{{ route('exhibitions', ['tab' => 'exhibitions']) }}" class="tab {{ $tab === 'exhibitions' ? 'active' : '' }}"><i class="bi bi-easel2"></i>{{ __('Exhibitions') }}</a>
+            <a href="{{ route('exhibitions', ['tab' => 'quotations']) }}" class="tab {{ $tab === 'quotations' ? 'active' : '' }}"><i class="bi bi-file-earmark-ruled"></i>{{ __('Quotations') }}</a>
+        </div>
+    </div>
+
+    @if ($tab === 'quotations')
+        @include('pages.partials.quotation-pipeline', ['rows' => $quotations, 'createUrl' => route('quotations.create', ['type' => 'exhibition'])])
+    @else
     {{-- Toolbar: search + filters on one side, table/cards switch on the other --}}
     <div class="toolbar full-bleed sheet-aligned">
         <div class="toolbar-start">
@@ -131,6 +144,7 @@
         <i class="bi bi-search"></i>
         {{ __('No exhibitions match your search') }}
     </div>
+    @endif
 
     {{-- Add / Edit Exhibition modal --}}
     <div class="modal fade" id="exhibitionModal" tabindex="-1" aria-hidden="true">
@@ -206,33 +220,35 @@
         const sw = document.getElementById('exViewSwitch');
         const table = document.getElementById('exTableView');
         const cards = document.getElementById('exCardsView');
-        const setView = (view) => {
-            const isCards = view === 'cards';
-            cards.classList.toggle('is-hidden', !isCards);
-            table.classList.toggle('is-hidden', isCards);
-            sw.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
-            try { localStorage.setItem('exView', view); } catch (e) {}
-        };
-        sw.addEventListener('click', (e) => {
-            const btn = e.target.closest('button');
-            if (btn) setView(btn.dataset.view);
-        });
-        try { const saved = localStorage.getItem('exView'); if (saved) setView(saved); } catch (e) {}
-
-        // Client-side search filter across both views
-        const search = document.getElementById('exSearch');
-        const empty = document.getElementById('exEmpty');
-        search.addEventListener('input', () => {
-            const q = search.value.trim().toLowerCase();
-            let visible = 0;
-            document.querySelectorAll('[data-title]').forEach(el => {
-                const match = el.dataset.title.toLowerCase().includes(q);
-                el.classList.toggle('is-hidden', !match);
-                if (el.matches('tr') && match) visible++;
-                if (el.matches('.ex-card') && match) visible++;
+        // The view switch + search only exist on the Exhibitions tab.
+        if (sw && table && cards) {
+            const setView = (view) => {
+                const isCards = view === 'cards';
+                cards.classList.toggle('is-hidden', !isCards);
+                table.classList.toggle('is-hidden', isCards);
+                sw.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+                try { localStorage.setItem('exView', view); } catch (e) {}
+            };
+            sw.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (btn) setView(btn.dataset.view);
             });
-            empty.classList.toggle('is-hidden', visible > 0);
-        });
+            try { const saved = localStorage.getItem('exView'); if (saved) setView(saved); } catch (e) {}
+
+            const search = document.getElementById('exSearch');
+            const empty = document.getElementById('exEmpty');
+            if (search) search.addEventListener('input', () => {
+                const q = search.value.trim().toLowerCase();
+                let visible = 0;
+                document.querySelectorAll('[data-title]').forEach(el => {
+                    const match = el.dataset.title.toLowerCase().includes(q);
+                    el.classList.toggle('is-hidden', !match);
+                    if (el.matches('tr') && match) visible++;
+                    if (el.matches('.ex-card') && match) visible++;
+                });
+                if (empty) empty.classList.toggle('is-hidden', visible > 0);
+            });
+        }
 
         // Add / Edit exhibition modal
         const modal = new bootstrap.Modal(document.getElementById('exhibitionModal'));

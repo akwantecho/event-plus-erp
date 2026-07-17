@@ -5,7 +5,7 @@
     {{-- Editor action bar --}}
     <div class="editor-bar full-bleed">
         <div class="editor-bar-start">
-            <a href="{{ route('contracts') }}" class="btn-icon" title="{{ __('Close') }}"><i class="bi bi-x-lg"></i></a>
+            <a href="{{ $backUrl }}" class="btn-icon" title="{{ __('Close') }}"><i class="bi bi-x-lg"></i></a>
             <strong>{{ $isEdit ? __('Edit Contract') : __('Create Contract') }}</strong>
         </div>
         <div class="editor-bar-end">
@@ -30,6 +30,7 @@
     <form id="docForm" method="POST" action="{{ $action }}" class="invoice-doc">
         @csrf
         @if ($isEdit) @method('PUT') @endif
+        <input type="hidden" name="project_id" value="{{ $contract['projectId'] }}">
         <input type="hidden" name="vat_rate" value="0">
 
         <div class="inv-head">

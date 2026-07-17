@@ -5,7 +5,7 @@
     {{-- Top action bar --}}
     <div class="editor-bar full-bleed">
         <div class="editor-bar-start">
-            <a href="{{ route('contracts', ['tab' => 'contracts']) }}" class="btn-icon" title="{{ __('Close') }}"><i class="bi bi-arrow-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}"></i></a>
+            <a href="{{ $backUrl }}" class="btn-icon" title="{{ __('Close') }}"><i class="bi bi-arrow-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}"></i></a>
             <strong class="js-number">{{ $contract['number'] }}</strong>
             @include('partials.status', ['status' => $contract['status']])
         </div>

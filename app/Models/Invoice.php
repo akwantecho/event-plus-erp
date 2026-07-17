@@ -33,6 +33,11 @@ class Invoice extends Model
         return $this->belongsTo(Contract::class);
     }
 
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
+    }
+
     public function exhibition()
     {
         return $this->belongsTo(Exhibition::class);

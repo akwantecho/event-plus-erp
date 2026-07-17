@@ -3,7 +3,7 @@
 
 @php
     $active = request('tab', 'contracts');
-    if (! in_array($active, ['contracts', 'invoices'], true)) {
+    if (! in_array($active, ['contracts', 'invoices', 'quotations'], true)) {
         $active = 'contracts';
     }
 @endphp
@@ -15,6 +15,7 @@
             <p class="subtitle">{{ __('Create and track contracts and invoices') }}</p>
         </div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a href="{{ route('quotations.create') }}" class="chip"><i class="bi bi-file-earmark-ruled"></i>{{ __('Create Quotation') }}</a>
             <a href="{{ route('contracts.create') }}" class="chip"><i class="bi bi-file-earmark-plus"></i>{{ __('Create Contract') }}</a>
             <a href="{{ route('invoices.create') }}" class="btn-brand"><i class="bi bi-receipt"></i>{{ __('Create Invoice') }}</a>
         </div>
@@ -27,6 +28,9 @@
             </a>
             <a href="{{ route('contracts', ['tab' => 'invoices']) }}" class="tab {{ $active === 'invoices' ? 'active' : '' }}">
                 <i class="bi bi-receipt"></i>{{ __('Invoices') }}
+            </a>
+            <a href="{{ route('contracts', ['tab' => 'quotations']) }}" class="tab {{ $active === 'quotations' ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-ruled"></i>{{ __('Quotations') }}
             </a>
         </div>
         <label class="search-input"><i class="bi bi-search"></i><input type="text" placeholder="{{ __('Search...') }}"></label>
@@ -67,7 +71,7 @@
                 </div>
             </div>
         </div>
-    @else
+    @elseif ($active === 'invoices')
         <div class="full-bleed">
             <div class="sheet-frame">
                 <div class="table-wrap">
@@ -97,6 +101,43 @@
                                 </div></td>
                             </tr>
                         @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @else
+        <div class="full-bleed">
+            <div class="sheet-frame">
+                <div class="table-wrap">
+                    <table class="data sheet">
+                        <thead><tr>
+                            <th style="width:46px">#</th>
+                            <th>{{ __('Quotation No.') }}</th><th>{{ __('Client') }}</th><th>{{ __('Project / Exhibition') }}</th>
+                            <th>{{ __('Total') }}</th><th>{{ __('Date') }}</th><th>{{ __('Status') }}</th><th style="width:90px">{{ __('Actions') }}</th>
+                        </tr></thead>
+                        <tbody>
+                        @forelse ($quotations as $q)
+                            <tr class="row-link" onclick="window.location='{{ route('quotations.show', $q['no']) }}'">
+                                <td class="cell-muted">{{ $loop->iteration }}</td>
+                                <td class="cell-strong">{{ $q['no'] }}</td>
+                                <td class="cell-muted">{{ $q['client'] }}</td>
+                                <td class="cell-muted">{{ $q['exhibition'] }}</td>
+                                <td class="cell-strong">{{ $q['amount'] }}</td>
+                                <td class="cell-muted">{{ $q['date'] }}</td>
+                                <td>@include('partials.status', ['status' => $q['status']])</td>
+                                <td><div class="row-actions" onclick="event.stopPropagation()">
+                                    <a href="{{ route('quotations.show', $q['no']) }}" title="{{ __('View') }}"><i class="bi bi-eye"></i></a>
+                                    <a href="{{ route('quotations.edit', $q['id']) }}" title="{{ __('Edit') }}"><i class="bi bi-pencil"></i></a>
+                                    <form method="POST" action="{{ route('quotations.destroy', $q['id']) }}" onsubmit="return confirm('{{ __('Delete this quotation?') }}')" style="display:inline">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" title="{{ __('Delete') }}" style="background:none;border:0;padding:0;cursor:pointer;color:inherit"><i class="bi bi-trash3"></i></button>
+                                    </form>
+                                </div></td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="8" class="cell-muted" style="text-align:center;padding:24px">{{ __('No quotations yet.') }}</td></tr>
+                        @endforelse
                         </tbody>
                     </table>
                 </div>

@@ -2,12 +2,7 @@
 @section('title', __('Archive'))
 
 @section('content')
-    <div class="page-head head-bar full-bleed sheet-aligned">
-        <div>
-            <h1>{{ __('Archive') }}</h1>
-            <p class="subtitle">{{ __('Archived Items') }}</p>
-        </div>
-    </div>
+    @include('partials.settings-tabs', ['stab' => 'archive'])
 
     <div class="toolbar full-bleed sheet-aligned">
         <div class="toolbar-start">

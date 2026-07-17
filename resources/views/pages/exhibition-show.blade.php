@@ -73,8 +73,35 @@
     @endif
 
     @if ($active === 'documents')
+        {{-- Quotations for this exhibition --}}
+        @include('pages.partials.project-doc-table', [
+            'title' => __('Quotations'),
+            'createUrl' => route('quotations.create', ['exhibition' => $exhibition['id']]),
+            'createLabel' => __('Create Quotation'),
+            'showRoute' => 'quotations.show',
+            'editRoute' => 'quotations.edit',
+            'destroyRoute' => 'quotations.destroy',
+            'amountLabel' => __('Total'),
+            'rows' => $quotations,
+            'empty' => __('No quotations yet.'),
+        ])
+
+        {{-- Invoices for this exhibition --}}
+        @include('pages.partials.project-doc-table', [
+            'title' => __('Invoices'),
+            'createUrl' => route('invoices.create', ['exhibition' => $exhibition['id']]),
+            'createLabel' => __('Create Invoice'),
+            'showRoute' => 'invoices.show',
+            'editRoute' => 'invoices.edit',
+            'destroyRoute' => 'invoices.destroy',
+            'amountLabel' => __('Amount'),
+            'rows' => $invoices,
+            'empty' => __('No invoices yet.'),
+        ])
+
+        {{-- Uploaded attachments --}}
         <div class="toolbar full-bleed sheet-aligned">
-            <strong>{{ __('Documents') }}</strong>
+            <strong>{{ __('Attachments') }}</strong>
             <button class="btn-brand"><i class="bi bi-upload"></i>{{ __('Upload') }}</button>
         </div>
         <div class="full-bleed">

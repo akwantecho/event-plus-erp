@@ -21,6 +21,12 @@ Route::get('/exhibitions/{id}', [PageController::class, 'exhibitionShow'])->name
 Route::put('/exhibitions/{exhibition}', [PageController::class, 'exhibitionUpdate'])->name('exhibitions.update');
 Route::delete('/exhibitions/{exhibition}', [PageController::class, 'exhibitionDestroy'])->name('exhibitions.destroy');
 
+Route::get('/projects', [PageController::class, 'projects'])->name('projects');
+Route::post('/projects', [PageController::class, 'projectStore'])->name('projects.store');
+Route::get('/projects/{id}', [PageController::class, 'projectShow'])->name('projects.show');
+Route::put('/projects/{project}', [PageController::class, 'projectUpdate'])->name('projects.update');
+Route::delete('/projects/{project}', [PageController::class, 'projectDestroy'])->name('projects.destroy');
+
 Route::get('/contacts', [PageController::class, 'contacts'])->name('contacts');
 Route::post('/contacts', [PageController::class, 'contactStore'])->name('contacts.store');
 Route::put('/contacts/{contact}', [PageController::class, 'contactUpdate'])->name('contacts.update');
@@ -45,6 +51,16 @@ Route::get('/invoices/{invoice}/edit', [PageController::class, 'invoiceEdit'])->
 Route::put('/invoices/{invoice}', [PageController::class, 'invoiceUpdate'])->name('invoices.update');
 Route::delete('/invoices/{invoice}', [PageController::class, 'invoiceDestroy'])->name('invoices.destroy');
 Route::get('/invoices/{id}', [PageController::class, 'invoiceShow'])->name('invoices.show');
+Route::get('/quotations/create', [PageController::class, 'quotationCreate'])->name('quotations.create');
+Route::post('/quotations', [PageController::class, 'quotationStore'])->name('quotations.store');
+Route::post('/quotations/{quotation}/send', [PageController::class, 'quotationSend'])->name('quotations.send');
+Route::post('/quotations/{quotation}/reject', [PageController::class, 'quotationReject'])->name('quotations.reject');
+Route::post('/quotations/{quotation}/approve', [PageController::class, 'quotationApprove'])->name('quotations.approve');
+Route::get('/quotations/{quotation}/edit', [PageController::class, 'quotationEdit'])->name('quotations.edit');
+Route::put('/quotations/{quotation}', [PageController::class, 'quotationUpdate'])->name('quotations.update');
+Route::delete('/quotations/{quotation}', [PageController::class, 'quotationDestroy'])->name('quotations.destroy');
+Route::get('/quotations/{id}', [PageController::class, 'quotationShow'])->name('quotations.show');
+
 Route::get('/stock', [PageController::class, 'stock'])->name('stock');
 Route::post('/stock', [PageController::class, 'stockStore'])->name('stock.store');
 Route::put('/stock/{stockItem}', [PageController::class, 'stockUpdate'])->name('stock.update');

@@ -10,6 +10,8 @@ use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Setting;
 use App\Models\Notice;
+use App\Models\Project;
+use App\Models\Quotation;
 use App\Models\StockItem;
 use App\Models\Subtask;
 use App\Models\Task;
@@ -34,6 +36,9 @@ class PageController extends Controller
             'cr' => '160141',
             'phone' => '+968 76629966',
             'email' => 'Eventplusoman@gmail.com',
+            'bank_name' => 'Bank Sohar',
+            'bank_account_name' => 'Event Plus',
+            'bank_account_no' => '101455775419001',
         ];
     }
 
@@ -55,6 +60,28 @@ class PageController extends Controller
     private function money($value, string $currency = 'ر.ع'): string
     {
         return number_format((float) $value, 0).' '.$currency;
+    }
+
+    /** Exhibition/project context read from a document-create request query. */
+    private function documentContext(): array
+    {
+        return [
+            'exhibition_id' => request('exhibition') ?: null,
+            'project_id' => request('project') ?: null,
+        ];
+    }
+
+    /** Where a document editor/preview returns to — its project or exhibition, else the docs hub. */
+    private function documentBackUrl($model, string $hubTab): string
+    {
+        if (! empty($model->project_id)) {
+            return route('projects.show', [$model->project_id, 'tab' => 'documents']);
+        }
+        if (! empty($model->exhibition_id)) {
+            return route('exhibitions.show', [$model->exhibition_id, 'tab' => 'documents']);
+        }
+
+        return route('contracts', ['tab' => $hubTab]);
     }
 
     /**
@@ -326,9 +353,14 @@ class PageController extends Controller
 
     public function exhibitions()
     {
+        $tab = request('tab') === 'quotations' ? 'quotations' : 'exhibitions';
         $exhibitions = Exhibition::latest('id')->get()->map(fn ($e) => $this->exhibitionArray($e))->all();
+        $quotations = Quotation::where('target_type', 'exhibition')->latest('id')->get()->map(fn ($q) => [
+            'id' => $q->id, 'no' => $q->number, 'name' => $q->project_name ?: $q->recipient,
+            'amount' => $this->money($q->grand_total), 'date' => optional($q->issue_date)->format('Y-m-d'), 'status' => $q->status,
+        ])->all();
 
-        return view('pages.exhibitions', compact('exhibitions'));
+        return view('pages.exhibitions', compact('exhibitions', 'quotations', 'tab'));
     }
 
     private function exhibitionRules(): array
@@ -404,6 +436,16 @@ class PageController extends Controller
             'title' => $d->title, 'type' => $d->type, 'size' => $d->size, 'date' => optional($d->doc_date)->format('Y-m-d'),
         ])->all();
 
+        $quotations = Quotation::where('exhibition_id', $model->id)->latest('id')->get()->map(fn ($q) => [
+            'id' => $q->id, 'no' => $q->number, 'amount' => $this->money($q->grand_total),
+            'date' => optional($q->issue_date)->format('Y-m-d'), 'status' => $q->status,
+        ])->all();
+
+        $invoices = Invoice::where('exhibition_id', $model->id)->latest('id')->get()->map(fn ($i) => [
+            'id' => $i->id, 'no' => $i->number, 'amount' => $this->money($i->total),
+            'date' => optional($i->issue_date)->format('Y-m-d'), 'status' => $i->status,
+        ])->all();
+
         $stockItems = StockItem::latest('id')->take(3)->get()->map(fn ($s) => [
             'name' => $s->name, 'category' => $s->type === 'service' ? 'خدمات' : 'أجهزة', 'qty' => $s->quantity ?? 1, 'status' => $s->status,
         ])->all();
@@ -422,8 +464,118 @@ class PageController extends Controller
 
         return view('pages.exhibition-show', compact(
             'exhibition', 'tabs', 'active', 'summary',
-            'documents', 'stockItems', 'expenses', 'setup', 'tasks'
+            'documents', 'quotations', 'invoices', 'stockItems', 'expenses', 'setup', 'tasks'
         ));
+    }
+
+    /* ===================================================================
+     | Projects — a document context (contracts + quotations + invoices)
+     * =================================================================== */
+
+    private function projectArray(Project $p): array
+    {
+        return [
+            'id' => $p->id,
+            'name' => $p->name,
+            'client' => $p->client?->name,
+            'clientId' => $p->client_id,
+            'location' => $p->location,
+            'start' => optional($p->start_date)->format('Y-m-d'),
+            'end' => optional($p->end_date)->format('Y-m-d'),
+            'status' => $p->status,
+            'notes' => $p->notes,
+        ];
+    }
+
+    private function projectRules(): array
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'client_id' => 'nullable|exists:contacts,id',
+            'location' => 'nullable|string|max:255',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'status' => 'nullable|in:'.implode(',', $this->taskStatuses()),
+            'notes' => 'nullable|string',
+        ];
+    }
+
+    public function projects()
+    {
+        $tab = request('tab') === 'quotations' ? 'quotations' : 'projects';
+        $projects = Project::with('client')->latest('id')->get()->map(fn ($p) => $this->projectArray($p))->all();
+        $quotations = Quotation::where('target_type', 'project')->latest('id')->get()->map(fn ($q) => [
+            'id' => $q->id, 'no' => $q->number, 'name' => $q->project_name ?: $q->recipient,
+            'amount' => $this->money($q->grand_total), 'date' => optional($q->issue_date)->format('Y-m-d'), 'status' => $q->status,
+        ])->all();
+
+        return view('pages.projects', [
+            'projects' => $projects,
+            'quotations' => $quotations,
+            'tab' => $tab,
+            'clients' => $this->clientOptions(),
+        ]);
+    }
+
+    public function projectStore(Request $request)
+    {
+        $data = $request->validate($this->projectRules());
+        $data['status'] = $data['status'] ?? 'Upcoming';
+        Project::create($data);
+
+        return redirect()->route('projects')->with('status', __('Saved successfully.'));
+    }
+
+    public function projectUpdate(Request $request, Project $project)
+    {
+        $project->update($request->validate($this->projectRules()));
+
+        return redirect()->route('projects')->with('status', __('Saved successfully.'));
+    }
+
+    public function projectDestroy(Project $project)
+    {
+        $project->delete();
+
+        return redirect()->route('projects')->with('status', __('Deleted successfully.'));
+    }
+
+    /** Project detail — summary + documents (contracts / quotations / invoices). */
+    public function projectShow(string $id)
+    {
+        $model = Project::with(['client', 'contracts', 'quotations', 'invoices.client'])->findOrFail($id);
+        $project = $this->projectArray($model);
+
+        $active = request('tab', 'summary');
+        if (! in_array($active, ['summary', 'documents'], true)) {
+            $active = 'summary';
+        }
+
+        $contracts = $model->contracts->map(fn ($c) => [
+            'id' => $c->id, 'no' => $c->number, 'value' => $this->money($c->value),
+            'date' => optional($c->start_date)->format('Y-m-d'), 'status' => $c->status,
+        ])->all();
+
+        $quotations = $model->quotations->map(fn ($q) => [
+            'id' => $q->id, 'no' => $q->number, 'amount' => $this->money($q->grand_total),
+            'date' => optional($q->issue_date)->format('Y-m-d'), 'status' => $q->status,
+        ])->all();
+
+        $invoices = $model->invoices->map(fn ($i) => [
+            'id' => $i->id, 'no' => $i->number, 'amount' => $this->money($i->total),
+            'date' => optional($i->issue_date)->format('Y-m-d'), 'status' => $i->status,
+        ])->all();
+
+        $revenue = $model->invoices->sum('total');
+
+        $summary = [
+            ['key' => 'Contracts',  'value' => count($contracts),          'icon' => 'bi-file-earmark-text',  'color' => 'blue'],
+            ['key' => 'Quotations', 'value' => count($quotations),         'icon' => 'bi-file-earmark-ruled', 'color' => 'amber'],
+            ['key' => 'Invoices',   'value' => count($invoices),           'icon' => 'bi-receipt',            'color' => 'brand'],
+            ['key' => 'Revenue',    'value' => $this->money($revenue),     'icon' => 'bi-cash-stack',         'color' => 'green'],
+        ];
+
+        return view('pages.project-show', compact('project', 'active', 'summary', 'contracts', 'quotations', 'invoices'));
     }
 
     /**
@@ -601,7 +753,12 @@ class PageController extends Controller
             'amount' => $this->money($i->total), 'date' => optional($i->issue_date)->format('Y-m-d'), 'status' => $i->status,
         ])->all();
 
-        return view('pages.contracts', compact('contracts', 'invoices'));
+        $quotations = Quotation::with(['client', 'exhibition'])->latest('id')->get()->map(fn ($q) => [
+            'id' => $q->id, 'no' => $q->number, 'client' => $q->client?->name ?? $q->recipient, 'exhibition' => $q->exhibition?->title ?? $q->project_name,
+            'amount' => $this->money($q->grand_total), 'date' => optional($q->issue_date)->format('Y-m-d'), 'status' => $q->status,
+        ])->all();
+
+        return view('pages.contracts', compact('contracts', 'invoices', 'quotations'));
     }
 
     /**
@@ -610,9 +767,9 @@ class PageController extends Controller
     public function stock()
     {
         $types = [
-            'equipment' => ['label' => 'Devices & Equipment', 'icon' => 'bi-pc-display'],
-            'services' => ['label' => 'Services',            'icon' => 'bi-tools'],
-            'notices' => ['label' => 'Terms & Notices',      'icon' => 'bi-info-circle'],
+            'equipment' => ['label' => 'Products',       'icon' => 'bi-box-seam'],
+            'services' => ['label' => 'Services',        'icon' => 'bi-tools'],
+            'notices' => ['label' => 'Terms & Notices',  'icon' => 'bi-info-circle'],
         ];
 
         $active = request('type', 'equipment');
@@ -620,12 +777,13 @@ class PageController extends Controller
             $active = 'equipment';
         }
 
+        // Products are stored under the "equipment" type but, like services, carry a unit + price.
         $equipment = StockItem::type('equipment')->latest('id')->get()->map(fn ($s) => [
-            'id' => $s->id, 'name' => $s->name, 'sku' => $s->sku, 'qty' => $s->quantity, 'available' => $s->available, 'status' => $s->status,
+            'id' => $s->id, 'name' => $s->name, 'image' => $s->image, 'unit' => $s->unit, 'price' => $this->money($s->price), 'price_raw' => (float) $s->price, 'qty' => $s->quantity, 'status' => $s->status,
         ])->all();
 
         $services = StockItem::type('service')->latest('id')->get()->map(fn ($s) => [
-            'id' => $s->id, 'name' => $s->name, 'unit' => $s->unit, 'price' => $this->money($s->price), 'price_raw' => (float) $s->price, 'status' => $s->status,
+            'id' => $s->id, 'name' => $s->name, 'image' => $s->image, 'unit' => $s->unit, 'price' => $this->money($s->price), 'price_raw' => (float) $s->price, 'qty' => $s->quantity, 'status' => $s->status,
         ])->all();
 
         $notices = Notice::orderBy('position')->orderBy('id')->get()
@@ -693,8 +851,22 @@ class PageController extends Controller
             'unit' => 'nullable|string|max:100',
             'price' => 'nullable|numeric|min:0',
             'status' => 'nullable|in:'.implode(',', $this->taskStatuses()),
+            'image' => 'nullable|image|max:4096',
         ]);
         $data['status'] = $data['status'] ?? 'Active';
+
+        if ($request->hasFile('image')) {
+            $dir = public_path('uploads/products');
+            if (! is_dir($dir)) {
+                mkdir($dir, 0775, true);
+            }
+            $file = $request->file('image');
+            $filename = uniqid('prod_').'.'.$file->getClientOriginalExtension();
+            $file->move($dir, $filename);
+            $data['image'] = 'uploads/products/'.$filename;
+        } else {
+            unset($data['image']); // keep existing image on update
+        }
 
         return $data;
     }
@@ -847,31 +1019,29 @@ class PageController extends Controller
 
         $company = $this->company();
 
+        $client = $model->client;
+
         $invoice = [
+            'id' => $model->id,
             'number' => $model->number,
             'status' => $model->status,
             'currency' => $model->currency,
-            'date' => optional($model->issue_date)->format('Y-m-d'),
-            'due' => optional($model->due_date)->format('Y-m-d'),
+            'accent' => $model->accent_color ?: '#173B63',
+            'projectName' => $model->project_name ?: ($model->contract?->number ? __('Contract').' '.$model->contract->number : ''),
+            'paymentType' => $model->payment_type,
+            'entity' => $client?->name ?? '',
+            'date' => optional($model->issue_date)->format('j / n / Y'),
             'po' => $model->po,
             'vatRate' => (float) $model->vat_rate,
             'discount' => (float) $model->discount,
+            'items' => $model->items->map(fn ($i) => [
+                'name' => $i->description, 'total' => (float) $i->qty * (float) $i->price,
+            ])->all(),
+            'grandTotal' => (float) $model->total,
+            'backUrl' => $this->documentBackUrl($model, 'invoices'),
         ];
 
-        $client = $model->client;
-        $customer = [
-            'name' => $client?->name ?? '',
-            'address' => $client?->address ?? '',
-            'country' => $client?->country ?? 'سلطنة عُمان',
-            'vat' => $client?->vat_no ?? '',
-            'contact' => $client?->representative ?? $client?->phone ?? '',
-        ];
-
-        $items = $model->items->map(fn ($i) => [
-            'desc' => $i->description, 'qty' => (float) $i->qty, 'price' => (float) $i->price,
-        ])->all();
-
-        return view('pages.invoice-show', compact('company', 'invoice', 'customer', 'items'));
+        return view('pages.invoice-show', compact('company', 'invoice'));
     }
 
     /**
@@ -909,7 +1079,9 @@ class PageController extends Controller
 
         $terms = $model->terms->pluck('body')->all();
 
-        return view('pages.contract-show', compact('company', 'contract', 'items', 'schedule', 'terms'));
+        $backUrl = $this->documentBackUrl($model, 'contracts');
+
+        return view('pages.contract-show', compact('company', 'contract', 'items', 'schedule', 'terms', 'backUrl'));
     }
 
     /* ===================================================================
@@ -921,6 +1093,14 @@ class PageController extends Controller
     {
         return Contact::type('client')->orderBy('name')->get(['id', 'name'])
             ->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->all();
+    }
+
+    /** Products & services from stock, for the document line-item pickers. */
+    private function stockProducts(): array
+    {
+        return StockItem::whereIn('type', ['equipment', 'service'])->orderBy('name')
+            ->get(['name', 'price', 'type', 'quantity'])
+            ->map(fn ($s) => ['name' => $s->name, 'price' => (float) $s->price, 'type' => $s->type, 'avail' => (int) $s->quantity])->all();
     }
 
     /** Exhibitions available in the document selects. */
@@ -993,7 +1173,7 @@ class PageController extends Controller
             'due_date' => Carbon::now()->addDays(15),
             'vat_rate' => 0,
             'status' => 'Draft',
-        ]));
+        ] + $this->documentContext()));
     }
 
     /** Edit an existing invoice in the same editor. */
@@ -1008,6 +1188,9 @@ class PageController extends Controller
         $invoice = [
             'number' => $model->number,
             'currency' => $model->currency ?? 'ر.ع',
+            'accent' => $model->accent_color ?: '#173B63',
+            'projectName' => $model->project_name,
+            'paymentType' => $model->payment_type,
             'date' => optional($model->issue_date)->format('Y-m-d'),
             'due' => optional($model->due_date)->format('Y-m-d'),
             'periodFrom' => optional($model->period_from)->format('Y-m-d'),
@@ -1018,6 +1201,7 @@ class PageController extends Controller
             'clientId' => $model->client_id,
             'contractId' => $model->contract_id,
             'exhibitionId' => $model->exhibition_id,
+            'projectId' => $model->project_id,
         ];
 
         $items = $model->exists
@@ -1036,8 +1220,11 @@ class PageController extends Controller
             'clients' => $this->clientOptions(),
             'contracts' => $this->contractOptions(),
             'exhibitions' => $this->exhibitionOptions(),
+            'stock' => $this->stockProducts(),
+            'accents' => ['#173B63', '#14283B', '#1B5E57', '#5A2D3A'],
             'isEdit' => $model->exists,
             'action' => $model->exists ? route('invoices.update', $model) : route('invoices.store'),
+            'backUrl' => $this->documentBackUrl($model, 'invoices'),
         ]);
     }
 
@@ -1139,6 +1326,10 @@ class PageController extends Controller
             'client_id' => 'nullable|exists:contacts,id',
             'contract_id' => 'nullable|exists:contracts,id',
             'exhibition_id' => 'nullable|exists:exhibitions,id',
+            'project_id' => 'nullable|exists:projects,id',
+            'project_name' => 'nullable|string|max:255',
+            'payment_type' => 'nullable|string|max:255',
+            'accent_color' => 'nullable|string|max:20',
             'currency' => 'nullable|string|max:20',
             'issue_date' => 'nullable|date',
             'due_date' => 'nullable|date|after_or_equal:issue_date',
@@ -1169,6 +1360,10 @@ class PageController extends Controller
                 'client_id' => $data['client_id'] ?? null,
                 'contract_id' => $data['contract_id'] ?? null,
                 'exhibition_id' => $data['exhibition_id'] ?? null,
+                'project_id' => $data['project_id'] ?? null,
+                'project_name' => $data['project_name'] ?? null,
+                'payment_type' => $data['payment_type'] ?? null,
+                'accent_color' => $data['accent_color'] ?? '#173B63',
                 'currency' => $data['currency'] ?? 'ر.ع',
                 'issue_date' => $data['issue_date'] ?? null,
                 'due_date' => $data['due_date'] ?? null,
@@ -1195,6 +1390,353 @@ class PageController extends Controller
     }
 
     /* ===================================================================
+     | Quotations (عرض سعر) — preview / create / edit / persist
+     * =================================================================== */
+
+    /** Random, unique quotation number (e.g. Q-2026-014). */
+    private function nextQuotationNumber(): string
+    {
+        do {
+            $number = 'Q-'.Carbon::now()->format('Y').'-'.str_pad((string) random_int(1, 999), 3, '0', STR_PAD_LEFT);
+        } while (Quotation::where('number', $number)->exists());
+
+        return $number;
+    }
+
+    /** The standard company notices seeded into a fresh quotation. */
+    private function defaultQuotationNotices(): array
+    {
+        return [
+            ['title' => 'طريقة الدفع', 'body' => 'تُدفع دفعة مقدّمة بنسبة (50%) من قيمة العرض عند اعتماده، والمبلغ المتبقّي عند التسليم النهائي / انتهاء المعرض.'],
+            ['title' => 'الإدارة الميدانية', 'body' => 'نظراً لإقامة المعرض في منطقة خارج محافظة مسقط، تمّت إضافة إداري من الشركة لإدارة فريق المنظمين وتقديم الدعم الفني الميداني طوال فترة المعرض.'],
+            ['title' => 'تأكيد الموعد', 'body' => 'يجب تأكيد موعد المعرض وإبلاغنا بأي تغيير قبل مدة لا تقل عن أسبوعين لضمان جاهزية النظام والفريق.'],
+            ['title' => 'أساس التسعير', 'body' => 'أسعار النظام والتنقل والسكن والتكاليف المعيشية محتسبة على أساس أيام التشغيل الفعلية، وأي زيادة في المدة تُحتسب إضافياً.'],
+            ['title' => 'السفر والإقامة', 'body' => 'يشمل العرض تذاكر السفر ذهاباً وإياباً وسكن الفريق طوال فترة المعرض، ولا يشمل أي مصاريف شخصية خارج نطاقه.'],
+            ['title' => 'الخدمات الإضافية', 'body' => 'أي خدمة أو متطلب خارج البنود المذكورة يُقدَّم بعرض سعر منفصل بحسب طبيعته.'],
+            ['title' => 'ضمان الأجهزة', 'body' => 'يتحمّل العميل مسؤولية سلامة أجهزة قراءة QR وضمانها طوال فترة المعرض، وأي تلف أو فقدان يقع خارج نطاق مسؤولية الشركة.'],
+            ['title' => 'مسؤولية العميل', 'body' => 'يلتزم العميل بتزويدنا بالمحتوى والبيانات اللازمة قبل بدء التنفيذ، ولا تتحمل الشركة نتائج أي بيانات غير صحيحة أو ناقصة.'],
+        ];
+    }
+
+    /** Quotation preview — the approved 3-page A4 document. */
+    public function quotationShow(string $id)
+    {
+        $model = Quotation::with(['client', 'exhibition', 'items'])
+            ->where('number', $id)->orWhere('id', $id)->firstOrFail();
+
+        $company = $this->company();
+        $accent = $model->accent_color ?: '#173B63';
+
+        $eventRange = '';
+        if ($model->event_from || $model->event_to) {
+            $from = optional($model->event_from)->format('j / n');
+            $to = optional($model->event_to)->format('j / n');
+            $eventRange = trim($from.($to ? ' — '.$to : ''));
+        }
+
+        $quotation = [
+            'id' => $model->id,
+            'number' => $model->number,
+            'status' => $model->status,
+            'currency' => $model->currency,
+            'accent' => $accent,
+            'projectName' => $model->project_name,
+            'recipient' => $model->recipient ?: ($model->client?->name ?? ''),
+            'exhibition' => $model->exhibition?->title,
+            'issueDate' => optional($model->issue_date)->format('Y-m-d'),
+            'eventRange' => $eventRange,
+            'timeline' => collect($model->timeline ?? [])->map(fn ($r) => [
+                'item' => $r['item'] ?? '', 'duration' => $r['duration'] ?? '',
+            ])->all(),
+            'items' => $model->items->map(fn ($i) => [
+                'item' => $i->description, 'qty' => $i->qty_label, 'price' => $i->price_label, 'total' => (float) $i->total,
+            ])->all(),
+            'notices' => collect($model->notices ?? [])->map(fn ($n) => [
+                'title' => $n['title'] ?? '', 'body' => $n['body'] ?? '',
+            ])->all(),
+            'grandTotal' => (float) $model->grand_total,
+            'targetType' => $model->target_type ?: 'exhibition',
+            'installments' => collect($model->installments ?? [])->map(fn ($r) => [
+                'label' => $r['label'] ?? '', 'percent' => (float) ($r['percent'] ?? 0),
+                'due' => $r['due_date'] ?? null, 'amount' => round((float) $model->grand_total * (float) ($r['percent'] ?? 0) / 100, 2),
+            ])->all(),
+            'invoicesCount' => Invoice::where(function ($q) use ($model) {
+                $q->where('project_id', $model->project_id)->orWhere('exhibition_id', $model->exhibition_id);
+            })->when(! $model->project_id && ! $model->exhibition_id, fn ($q) => $q->whereRaw('1=0'))->count(),
+            'entityUrl' => $model->project_id ? route('projects.show', [$model->project_id, 'tab' => 'documents'])
+                : ($model->exhibition_id ? route('exhibitions.show', [$model->exhibition_id, 'tab' => 'documents']) : null),
+            'backUrl' => $this->documentBackUrl($model, 'quotations'),
+        ];
+
+        return view('pages.quotation-show', compact('company', 'quotation'));
+    }
+
+    /** New quotation editor — seeded from the company's standard template. */
+    public function quotationCreate()
+    {
+        return $this->quotationForm(new Quotation([
+            'number' => $this->nextQuotationNumber(),
+            'currency' => 'ر.ع',
+            'accent_color' => '#173B63',
+            'issue_date' => Carbon::now(),
+            'timeline' => [
+                ['item' => 'تصميم وتجهيز رابط التسجيل', 'duration' => 'أسبوع واحد'],
+                ['item' => 'إعداد وتهيئة النظام', 'duration' => 'أسبوعان'],
+            ],
+            'notices' => $this->defaultQuotationNotices(),
+            'status' => 'Draft',
+            'target_type' => (request('type') === 'project' || request('project')) ? 'project' : 'exhibition',
+        ] + $this->documentContext()));
+    }
+
+    /** Edit an existing quotation in the same editor. */
+    public function quotationEdit(Quotation $quotation)
+    {
+        return $this->quotationForm($quotation->load('items'));
+    }
+
+    /** Shared quotation editor view used by both create and edit. */
+    private function quotationForm(Quotation $model)
+    {
+        $quotation = [
+            'number' => $model->number,
+            'currency' => $model->currency ?? 'ر.ع',
+            'accent' => $model->accent_color ?: '#173B63',
+            'projectName' => $model->project_name,
+            'recipient' => $model->recipient,
+            'issueDate' => optional($model->issue_date)->format('Y-m-d'),
+            'eventFrom' => optional($model->event_from)->format('Y-m-d'),
+            'eventTo' => optional($model->event_to)->format('Y-m-d'),
+            'clientId' => $model->client_id,
+            'exhibitionId' => $model->exhibition_id,
+            'projectId' => $model->project_id,
+            'targetType' => $model->target_type ?: 'exhibition',
+        ];
+
+        $costItems = $model->exists
+            ? $model->items->map(fn ($i) => [
+                'item' => $i->description, 'qty' => $i->qty_label, 'price' => $i->price_label,
+                'total' => rtrim(rtrim(number_format((float) $i->total, 2, '.', ''), '0'), '.'),
+            ])->all()
+            : [];
+
+        $timeline = $model->timeline ?? [];
+        $notices = $model->notices ?? [];
+
+        return view('pages.quotation-create', [
+            'company' => $this->company(),
+            'quotation' => $quotation,
+            'costItems' => $costItems,
+            'timeline' => $timeline,
+            'notices' => $notices,
+            'clients' => $this->clientOptions(),
+            'exhibitions' => $this->exhibitionOptions(),
+            'stock' => $this->stockProducts(),
+            'accents' => ['#173B63', '#14283B', '#1B5E57', '#5A2D3A'],
+            'isEdit' => $model->exists,
+            'action' => $model->exists ? route('quotations.update', $model) : route('quotations.store'),
+            'backUrl' => $this->documentBackUrl($model, 'quotations'),
+        ]);
+    }
+
+    public function quotationStore(Request $request)
+    {
+        $quotation = new Quotation;
+        $this->saveQuotation($quotation, $request);
+
+        return redirect()->route('quotations.show', $quotation->number)->with('status', __('Saved successfully.'));
+    }
+
+    public function quotationUpdate(Request $request, Quotation $quotation)
+    {
+        $this->saveQuotation($quotation, $request);
+
+        return redirect()->route('quotations.show', $quotation->number)->with('status', __('Saved successfully.'));
+    }
+
+    public function quotationDestroy(Quotation $quotation)
+    {
+        $quotation->delete();
+
+        return redirect()->route('contracts', ['tab' => 'quotations'])->with('status', __('Deleted successfully.'));
+    }
+
+    /** Mark a quotation as sent to the client. */
+    public function quotationSend(Quotation $quotation)
+    {
+        $quotation->update(['status' => 'Sent']);
+
+        return back()->with('status', __('Marked as sent.'));
+    }
+
+    /** Client rejected the quotation. */
+    public function quotationReject(Quotation $quotation)
+    {
+        $quotation->update(['status' => 'Rejected']);
+
+        return back()->with('status', __('Quotation rejected.'));
+    }
+
+    /**
+     * Approve a quotation: agree the payment plan, create the target work
+     * (exhibition or project) if it does not exist yet, and generate one
+     * invoice per installment.
+     */
+    public function quotationApprove(Request $request, Quotation $quotation)
+    {
+        $data = $request->validate([
+            'installments' => 'required|array|min:1',
+            'installments.*.label' => 'nullable|string|max:100',
+            'installments.*.percent' => 'required|numeric|min:0|max:100',
+            'installments.*.due_date' => 'nullable|date',
+        ]);
+
+        $installments = array_values(array_map(fn ($r) => [
+            'label' => trim((string) ($r['label'] ?? '')),
+            'percent' => (float) $r['percent'],
+            'due_date' => $r['due_date'] ?? null,
+        ], $data['installments']));
+
+        DB::transaction(function () use ($quotation, $installments) {
+            $name = $quotation->project_name ?: ($quotation->recipient ?: __('Untitled'));
+
+            // 1) Ensure the target work exists, and mark it active.
+            if ($quotation->target_type === 'project') {
+                if (! $quotation->project_id) {
+                    $quotation->project_id = Project::create([
+                        'name' => $name, 'client_id' => $quotation->client_id,
+                        'start_date' => $quotation->event_from, 'end_date' => $quotation->event_to, 'status' => 'Active',
+                    ])->id;
+                } else {
+                    $quotation->project->update(['status' => 'Active']);
+                }
+            } else {
+                if (! $quotation->exhibition_id) {
+                    $quotation->exhibition_id = Exhibition::create([
+                        'title' => $name, 'start_date' => $quotation->event_from,
+                        'end_date' => $quotation->event_to, 'status' => 'Active',
+                    ])->id;
+                } else {
+                    $quotation->exhibition->update(['status' => 'Active']);
+                }
+            }
+
+            $quotation->fill([
+                'installments' => $installments,
+                'status' => 'Approved',
+                'approved_at' => now(),
+            ])->save();
+
+            // 2) Generate one project invoice per installment.
+            $total = (float) $quotation->grand_total;
+            foreach ($installments as $i => $inst) {
+                $amount = round($total * $inst['percent'] / 100, 2);
+                $label = $inst['label'] ?: (__('Payment').' '.($i + 1).' ('.rtrim(rtrim(number_format($inst['percent'], 2, '.', ''), '0'), '.').'%)');
+
+                $invoice = Invoice::create([
+                    'number' => $this->nextInvoiceNumber(),
+                    'client_id' => $quotation->client_id,
+                    'exhibition_id' => $quotation->exhibition_id,
+                    'project_id' => $quotation->project_id,
+                    'project_name' => $quotation->project_name,
+                    'payment_type' => $label,
+                    'accent_color' => $quotation->accent_color,
+                    'currency' => $quotation->currency,
+                    'issue_date' => now(),
+                    'due_date' => $inst['due_date'] ?? null,
+                    'vat_rate' => 0,
+                    'discount' => 0,
+                    'status' => 'Unpaid',
+                ]);
+                $invoice->items()->create([
+                    'description' => $name.' — '.$label,
+                    'qty' => 1,
+                    'price' => $amount,
+                    'position' => 0,
+                ]);
+            }
+        });
+
+        return redirect()->route('quotations.show', $quotation->number)
+            ->with('status', __('Quotation approved and invoices generated.'));
+    }
+
+    private function saveQuotation(Quotation $quotation, Request $request): void
+    {
+        $unique = 'unique:quotations,number'.($quotation->exists ? ','.$quotation->id : '');
+
+        $data = $request->validate([
+            'number' => 'required|string|max:255|'.$unique,
+            'client_id' => 'nullable|exists:contacts,id',
+            'exhibition_id' => 'nullable|exists:exhibitions,id',
+            'project_id' => 'nullable|exists:projects,id',
+            'target_type' => 'nullable|in:exhibition,project',
+            'project_name' => 'nullable|string|max:255',
+            'recipient' => 'nullable|string|max:255',
+            'currency' => 'nullable|string|max:20',
+            'accent_color' => 'nullable|string|max:20',
+            'issue_date' => 'nullable|date',
+            'event_from' => 'nullable|date',
+            'event_to' => 'nullable|date|after_or_equal:event_from',
+            'notes' => 'nullable|string',
+            'timeline' => 'array',
+            'timeline.*.item' => 'nullable|string|max:255',
+            'timeline.*.duration' => 'nullable|string|max:255',
+            'costs' => 'array',
+            'costs.*.item' => 'nullable|string|max:255',
+            'costs.*.qty' => 'nullable|string|max:100',
+            'costs.*.price' => 'nullable|string|max:100',
+            'costs.*.total' => 'nullable|string|max:100',
+            'notices' => 'array',
+            'notices.*.title' => 'nullable|string|max:255',
+            'notices.*.body' => 'nullable|string|max:2000',
+        ]);
+
+        $costs = $this->cleanRows($data['costs'] ?? [], ['item', 'qty', 'price', 'total']);
+        $timeline = $this->cleanRows($data['timeline'] ?? [], ['item', 'duration']);
+        $notices = $this->cleanRows($data['notices'] ?? [], ['title', 'body']);
+
+        $grandTotal = array_sum(array_map(
+            fn ($r) => (float) str_replace(',', '', preg_replace('/[^\d.\-]/', '', $r['total'])),
+            $costs
+        ));
+
+        DB::transaction(function () use ($quotation, $data, $request, $costs, $timeline, $notices, $grandTotal) {
+            $quotation->fill([
+                'number' => $data['number'],
+                'client_id' => $data['client_id'] ?? null,
+                'exhibition_id' => $data['exhibition_id'] ?? null,
+                'project_id' => $data['project_id'] ?? null,
+                'target_type' => $data['target_type'] ?? 'exhibition',
+                'project_name' => $data['project_name'] ?? null,
+                'recipient' => $data['recipient'] ?? null,
+                'currency' => $data['currency'] ?? 'ر.ع',
+                'accent_color' => $data['accent_color'] ?? '#173B63',
+                'issue_date' => $data['issue_date'] ?? null,
+                'event_from' => $data['event_from'] ?? null,
+                'event_to' => $data['event_to'] ?? null,
+                'notes' => $data['notes'] ?? null,
+                'timeline' => $timeline,
+                'notices' => $notices,
+                'grand_total' => $grandTotal,
+                'status' => $this->documentStatus($request, $quotation->status, 'Sent'),
+            ])->save();
+
+            $quotation->items()->delete();
+            $position = 0;
+            foreach ($costs as $row) {
+                $quotation->items()->create([
+                    'description' => $row['item'],
+                    'qty_label' => $row['qty'],
+                    'price_label' => $row['price'],
+                    'total' => (float) str_replace(',', '', preg_replace('/[^\d.\-]/', '', $row['total'])),
+                    'position' => $position++,
+                ]);
+            }
+        });
+    }
+
+    /* ===================================================================
      | Contracts — create / edit / persist
      * =================================================================== */
 
@@ -1209,7 +1751,7 @@ class PageController extends Controller
             'end_date' => Carbon::now()->addMonths(3),
             'vat_rate' => 5,
             'status' => 'Draft',
-        ]));
+        ] + $this->documentContext()));
     }
 
     /** Edit an existing contract in the same editor. */
@@ -1231,6 +1773,7 @@ class PageController extends Controller
             'notes' => $model->notes,
             'clientId' => $model->client_id,
             'exhibitionId' => $model->exhibition_id,
+            'projectId' => $model->project_id,
         ];
 
         $items = $model->exists
@@ -1260,6 +1803,7 @@ class PageController extends Controller
             'exhibitions' => $this->exhibitionOptions(),
             'isEdit' => $model->exists,
             'action' => $model->exists ? route('contracts.update', $model) : route('contracts.store'),
+            'backUrl' => $this->documentBackUrl($model, 'contracts'),
         ]);
     }
 
@@ -1293,6 +1837,7 @@ class PageController extends Controller
             'number' => 'required|string|max:255|'.$unique,
             'client_id' => 'nullable|exists:contacts,id',
             'exhibition_id' => 'nullable|exists:exhibitions,id',
+            'project_id' => 'nullable|exists:projects,id',
             'type' => 'nullable|string|max:100',
             'currency' => 'nullable|string|max:20',
             'start_date' => 'nullable|date',
@@ -1317,6 +1862,7 @@ class PageController extends Controller
                 'number' => $data['number'],
                 'client_id' => $data['client_id'] ?? null,
                 'exhibition_id' => $data['exhibition_id'] ?? null,
+                'project_id' => $data['project_id'] ?? null,
                 'type' => $data['type'] ?? 'عقد خدمات',
                 'currency' => $data['currency'] ?? 'ر.ع',
                 'start_date' => $data['start_date'] ?? null,

@@ -27,6 +27,11 @@ class Contract extends Model
         return $this->belongsTo(Exhibition::class);
     }
 
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
+    }
+
     public function items()
     {
         return $this->hasMany(ContractItem::class)->orderBy('position');

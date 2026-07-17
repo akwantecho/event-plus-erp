@@ -10,26 +10,7 @@
 @endphp
 
 @section('content')
-    <div class="page-head head-bar full-bleed sheet-aligned">
-        <div>
-            <h1>{{ __('Settings') }}</h1>
-            <p class="subtitle">{{ __($labels[$active]) }}</p>
-        </div>
-    </div>
-
-    <div class="toolbar full-bleed sheet-aligned" style="padding-block:0;">
-        <div class="tabs">
-            <a href="{{ route('settings', ['tab' => 'general']) }}" class="tab {{ $active === 'general' ? 'active' : '' }}">
-                <i class="bi bi-sliders"></i>{{ __('General Settings') }}
-            </a>
-            <a href="{{ route('settings', ['tab' => 'users']) }}" class="tab {{ $active === 'users' ? 'active' : '' }}">
-                <i class="bi bi-people"></i>{{ __('Roles & Users') }}
-            </a>
-            <a href="{{ route('settings', ['tab' => 'finance']) }}" class="tab {{ $active === 'finance' ? 'active' : '' }}">
-                <i class="bi bi-wallet2"></i>{{ __('Finance Settings') }}
-            </a>
-        </div>
-    </div>
+    @include('partials.settings-tabs', ['stab' => $active])
 
     @if ($active === 'general')
         <div class="full-bleed sheet-aligned" style="padding-block:16px;">

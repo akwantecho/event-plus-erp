@@ -2,13 +2,7 @@
 @section('title', __('Reports'))
 
 @section('content')
-    <div class="page-head head-bar full-bleed sheet-aligned">
-        <div>
-            <h1>{{ __('Reports') }}</h1>
-            <p class="subtitle">{{ __('Analytics and exportable reports across the system') }}</p>
-        </div>
-        <button class="btn-brand"><i class="bi bi-download"></i>{{ __('Export') }}</button>
-    </div>
+    @include('partials.settings-tabs', ['stab' => 'reports'])
 
     {{-- Available reports --}}
     <div class="toolbar full-bleed sheet-aligned">

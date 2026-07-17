@@ -3,14 +3,14 @@
 
 @php
     $stockType = $active === 'services' ? 'service' : 'equipment';
-    $addLabel = $active === 'services' ? 'Add Service' : ($active === 'notices' ? 'Add Notice' : 'Add Item');
+    $addLabel = $active === 'services' ? 'Add Service' : ($active === 'notices' ? 'Add Notice' : 'Add Product');
 @endphp
 
 @section('content')
     <div class="page-head head-bar full-bleed sheet-aligned">
         <div>
             <h1>{{ __('Stock') }}</h1>
-            <p class="subtitle">{{ __('Devices, equipment and services') }}</p>
+            <p class="subtitle">{{ __('Products and services') }}</p>
         </div>
         @if ($active === 'notices')
             <button class="btn-brand" id="addNoticeBtn"><i class="bi bi-plus-lg"></i>{{ __('Add Notice') }}</button>
@@ -36,18 +36,18 @@
                 @if ($active === 'equipment')
                     <table class="data sheet">
                         <thead><tr>
-                            <th style="width:46px">#</th>
-                            <th>{{ __('Name') }}</th><th>{{ __('SKU') }}</th><th>{{ __('Quantity') }}</th>
-                            <th>{{ __('Available') }}</th><th>{{ __('Status') }}</th><th style="width:90px">{{ __('Actions') }}</th>
+                            <th style="width:64px"></th>
+                            <th>{{ __('Name') }}</th><th>{{ __('Unit') }}</th><th>{{ __('Price') }}</th>
+                            <th>{{ __('Available Count') }}</th><th>{{ __('Status') }}</th><th style="width:90px">{{ __('Actions') }}</th>
                         </tr></thead>
                         <tbody>
                         @forelse ($equipment as $e)
                             <tr data-stock="{{ json_encode($e, JSON_UNESCAPED_UNICODE) }}">
-                                <td class="cell-muted">{{ $loop->iteration }}</td>
-                                <td class="cell-strong"><i class="bi bi-box-seam me-1"></i>{{ $e['name'] }}</td>
-                                <td class="cell-muted" dir="ltr">{{ $e['sku'] }}</td>
+                                <td>@include('partials.stock-thumb', ['image' => $e['image'] ?? null, 'icon' => 'bi-box-seam'])</td>
+                                <td class="cell-strong">{{ $e['name'] }}</td>
+                                <td class="cell-muted">{{ $e['unit'] }}</td>
+                                <td class="cell-strong">{{ $e['price'] }}</td>
                                 <td class="cell-muted">{{ $e['qty'] }}</td>
-                                <td class="cell-muted">{{ $e['available'] }}</td>
                                 <td>@include('partials.status', ['status' => $e['status']])</td>
                                 <td>@include('partials.stock-actions', ['id' => $e['id']])</td>
                             </tr>
@@ -85,22 +85,23 @@
                 @else
                     <table class="data sheet">
                         <thead><tr>
-                            <th style="width:46px">#</th>
+                            <th style="width:64px"></th>
                             <th>{{ __('Name') }}</th><th>{{ __('Unit') }}</th><th>{{ __('Price') }}</th>
-                            <th>{{ __('Status') }}</th><th style="width:90px">{{ __('Actions') }}</th>
+                            <th>{{ __('Available Count') }}</th><th>{{ __('Status') }}</th><th style="width:90px">{{ __('Actions') }}</th>
                         </tr></thead>
                         <tbody>
                         @forelse ($services as $s)
                             <tr data-stock="{{ json_encode($s, JSON_UNESCAPED_UNICODE) }}">
-                                <td class="cell-muted">{{ $loop->iteration }}</td>
-                                <td class="cell-strong"><i class="bi bi-tools me-1"></i>{{ $s['name'] }}</td>
+                                <td>@include('partials.stock-thumb', ['image' => $s['image'] ?? null, 'icon' => 'bi-tools'])</td>
+                                <td class="cell-strong">{{ $s['name'] }}</td>
                                 <td class="cell-muted">{{ $s['unit'] }}</td>
                                 <td class="cell-strong">{{ $s['price'] }}</td>
+                                <td class="cell-muted">{{ $s['qty'] }}</td>
                                 <td>@include('partials.status', ['status' => $s['status']])</td>
                                 <td>@include('partials.stock-actions', ['id' => $s['id']])</td>
                             </tr>
                         @empty
-                            <tr><td colspan="6"><div class="empty-state"><i class="bi bi-inbox"></i>{{ __('No records yet. Click “:add” to create one.', ['add' => __($addLabel)]) }}</div></td></tr>
+                            <tr><td colspan="7"><div class="empty-state"><i class="bi bi-inbox"></i>{{ __('No records yet. Click “:add” to create one.', ['add' => __($addLabel)]) }}</div></td></tr>
                         @endforelse
                         </tbody>
                     </table>
@@ -113,7 +114,7 @@
     <div class="modal fade" id="stockModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content" style="border:1px solid var(--line); border-radius:16px;">
-                <form method="POST" id="stockForm" action="{{ route('stock.store') }}">
+                <form method="POST" id="stockForm" action="{{ route('stock.store') }}" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="_method" id="stockMethod" value="POST">
                     <input type="hidden" name="type" value="{{ $stockType }}">
@@ -122,37 +123,31 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
                     </div>
                     <div class="modal-body">
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            <span class="stock-thumb stock-thumb--lg stock-thumb--empty" id="sImagePreview"><i class="bi bi-image"></i></span>
+                            <div class="flex-grow-1">
+                                <label class="form-label">{{ __('Image') }}</label>
+                                <input type="file" name="image" id="sImage" class="form-control" accept="image/*">
+                            </div>
+                        </div>
                         <div class="mb-3">
                             <label class="form-label">{{ __('Name') }} <span class="req">*</span></label>
                             <input type="text" name="name" id="sName" class="form-control" required>
                         </div>
-                        @if ($active === 'equipment')
-                            <div class="mb-3">
-                                <label class="form-label">{{ __('SKU') }}</label>
-                                <input type="text" name="sku" id="sSku" class="form-control" dir="ltr">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">{{ __('Unit') }}</label>
+                                <input type="text" name="unit" id="sUnit" class="form-control" placeholder="{{ $active === 'services' ? __('e.g. per day') : __('e.g. piece') }}">
                             </div>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">{{ __('Quantity') }}</label>
-                                    <input type="number" name="quantity" id="sQty" class="form-control" min="0">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">{{ __('Available') }}</label>
-                                    <input type="number" name="available" id="sAvail" class="form-control" min="0">
-                                </div>
+                            <div class="col-md-4">
+                                <label class="form-label">{{ __('Price') }}</label>
+                                <input type="number" name="price" id="sPrice" class="form-control" min="0" step="0.01">
                             </div>
-                        @else
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">{{ __('Unit') }}</label>
-                                    <input type="text" name="unit" id="sUnit" class="form-control">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">{{ __('Price') }}</label>
-                                    <input type="number" name="price" id="sPrice" class="form-control" min="0" step="0.01">
-                                </div>
+                            <div class="col-md-4">
+                                <label class="form-label">{{ __('Available Count') }}</label>
+                                <input type="number" name="quantity" id="sQty" class="form-control" min="0" placeholder="{{ __('e.g. 4') }}">
                             </div>
-                        @endif
+                        </div>
                         <div class="mt-3">
                             <label class="form-label">{{ __('Status') }}</label>
                             <select name="status" id="sStatus" class="form-select">
@@ -206,12 +201,32 @@
         const updateBase = @json(url('stock'));
         const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = (v ?? ''); };
 
+        const preview = document.getElementById('sImagePreview');
+        const fallbackIcon = '<i class="bi bi-image"></i>';
+        const showPreview = (src) => {
+            if (!preview) return;
+            if (src) {
+                preview.classList.remove('stock-thumb--empty');
+                preview.innerHTML = '<img src="' + src + '" alt="">';
+            } else {
+                preview.classList.add('stock-thumb--empty');
+                preview.innerHTML = fallbackIcon;
+            }
+        };
+
+        const imageInput = document.getElementById('sImage');
+        if (imageInput) imageInput.addEventListener('change', () => {
+            const file = imageInput.files && imageInput.files[0];
+            if (file) showPreview(URL.createObjectURL(file));
+        });
+
         const addStockBtn = document.getElementById('addStockBtn');
         if (addStockBtn) addStockBtn.addEventListener('click', () => {
             form.reset();
             form.action = storeAction;
             document.getElementById('stockMethod').value = 'POST';
             document.getElementById('stockModalTitle').textContent = @json(__($addLabel));
+            showPreview(null);
             modal.show();
         });
 
@@ -224,14 +239,10 @@
                 document.getElementById('stockModalTitle').textContent = @json(__('Edit'));
                 setVal('sName', d.name);
                 setVal('sStatus', d.status);
-                if (isEquip) {
-                    setVal('sSku', d.sku);
-                    setVal('sQty', d.qty);
-                    setVal('sAvail', d.available);
-                } else {
-                    setVal('sUnit', d.unit);
-                    setVal('sPrice', d.price_raw);
-                }
+                setVal('sUnit', d.unit);
+                setVal('sPrice', d.price_raw);
+                setVal('sQty', d.qty);
+                showPreview(d.image ? @json(asset('')).replace(/\/$/, '') + '/' + d.image : null);
                 modal.show();
             });
         });

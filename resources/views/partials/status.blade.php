@@ -1,6 +1,10 @@
 @php
     $icons = [
         'Draft'     => 'bi-pencil-square',
+        'Sent'      => 'bi-send-check',
+        'Accepted'  => 'bi-check-circle',
+        'Approved'  => 'bi-patch-check',
+        'Rejected'  => 'bi-x-octagon',
         'Active'    => 'bi-broadcast',
         'Upcoming'  => 'bi-clock',
         'Completed' => 'bi-check-circle',
